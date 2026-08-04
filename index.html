@@ -243,6 +243,20 @@ tbody tr:last-child td{border-bottom:none}
 .order-total-bar .totals{font-size:14px;font-weight:600;color:#92400e;display:flex;gap:20px;flex-wrap:wrap}
 .order-total-bar .totals b{font-size:20px;color:var(--accent)}
 
+/* ============ Login ============ */
+.login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0f2440 0%,#1a365d 50%,#2b6cb0 100%);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:#fff;border-radius:14px;box-shadow:var(--shadow-lg);width:100%;max-width:380px;padding:36px 34px;animation:fadeIn .3s ease}
+.login-box .logo{width:52px;height:52px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--primary);margin:0 auto 14px}
+.login-box h2{text-align:center;font-size:17px;font-weight:600;color:var(--gray-800);margin-bottom:4px}
+.login-box .sub{text-align:center;font-size:12px;color:var(--gray-400);margin-bottom:24px}
+.login-box .lg-field{margin-bottom:14px}
+.login-box .lg-field label{display:block;font-size:12px;color:var(--gray-500);margin-bottom:5px;font-weight:500}
+.login-box .lg-field input{width:100%;padding:10px 14px;border:1px solid var(--gray-200);border-radius:8px;font-size:14px;outline:none;transition:var(--transition);font-family:inherit}
+.login-box .lg-field input:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(43,108,176,.12)}
+.login-box .lg-err{color:var(--danger);font-size:12px;min-height:18px;margin-bottom:6px;text-align:center}
+.login-box .btn{width:100%;justify-content:center;padding:11px;font-size:14px}
+.login-box .lg-tip{text-align:center;font-size:11px;color:var(--gray-400);margin-top:16px}
+
 /* ============ Responsive ============ */
 @media(max-width:1024px){.main{padding:20px}.header{padding:0 20px}.toolbar{padding:12px 20px}}
 @media(max-width:640px){
@@ -289,8 +303,31 @@ tbody tr:last-child td{border-bottom:none}
     <span id="saveStatus" style="font-size:12px;opacity:.8">💾 本地已保存</span>
     <span id="syncStatus" style="font-size:12px;opacity:.8"></span>
     <span class="badge" id="headerProductCount">0 个产品</span>
+    <span class="badge" id="headerUser" style="display:none;background:rgba(214,158,46,.25);color:#f6e05e"></span>
+    <button class="btn btn-sm" id="btnManageAccounts" onclick="openAccountModal()" style="display:none;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3)">👥 账号管理</button>
+    <button class="btn btn-sm" id="btnLogout" onclick="logout()" style="display:none;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.3)">退出</button>
   </div>
 </header>
+
+<!-- ============ 登录页 ============ -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="logo">龙</div>
+    <h2>龙腾鑫享产品管理平台</h2>
+    <div class="sub">请登录后访问 · Longteng Xinxiang Series</div>
+    <div class="lg-field">
+      <label>账号</label>
+      <input type="text" id="loginUser" placeholder="请输入账号" autocomplete="username">
+    </div>
+    <div class="lg-field">
+      <label>密码</label>
+      <input type="password" id="loginPass" placeholder="请输入密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="lg-err" id="loginErr"></div>
+    <button class="btn btn-primary" onclick="doLogin()" id="loginBtn">登 录</button>
+    <div class="lg-tip">账号由管理员分配，如无账号请联系管理员</div>
+  </div>
+</div>
 
 <!-- 云端异常提示条 -->
 <div id="cloudBanner" style="display:none;background:#fef3c7;color:#92400e;padding:9px 40px;font-size:13px;border-bottom:1px solid #fde68a;position:relative">
@@ -323,14 +360,47 @@ tbody tr:last-child td{border-bottom:none}
 <main class="main">
   <div class="stats-row">
     <div class="stat-card"><div class="lbl">产品总数</div><div class="val" id="sTotal">0</div><div class="sub">个系列产品</div></div>
-    <div class="stat-card c-accent"><div class="lbl">报单总笔数</div><div class="val" id="sOrders">0</div><div class="sub">笔</div></div>
     <div class="stat-card c-success"><div class="lbl">报单总金额</div><div class="val" id="sAmount">0</div><div class="sub">累计</div></div>
     <div class="stat-card c-info"><div class="lbl">覆盖渠道</div><div class="val" id="sChannels">0</div><div class="sub">个</div></div>
-    <div class="stat-card c-purple"><div class="lbl">平均单笔</div><div class="val" id="sAvg">0</div><div class="sub">万元</div></div>
   </div>
 
   <div id="productList"><!-- Products rendered here --></div>
 </main>
+
+<!-- ============ MODAL: 账号管理（仅管理员） ============ -->
+<div class="modal-overlay" id="accountModal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-header">
+      <h2>👥 账号管理</h2>
+      <button class="close" onclick="closeAccountModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="section-title">当前账号 <span class="count" id="accCount">1</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>账号</th><th>身份</th><th style="width:80px">操作</th></tr></thead>
+          <tbody id="accListBody"></tbody>
+        </table>
+      </div>
+      <div class="section-title" style="margin-top:20px">➕ 新增账号</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>账号</label>
+          <input type="text" id="accNewUser" placeholder="新账号名">
+        </div>
+        <div class="form-group">
+          <label>密码 <span class="note">至少6位</span></label>
+          <input type="text" id="accNewPass" placeholder="初始密码">
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--gray-400)">新增/删除账号会立即保存到云端，同事刷新页面后即可生效</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeAccountModal()">关闭</button>
+      <button class="btn btn-primary" onclick="addAccount()">➕ 新增账号</button>
+    </div>
+  </div>
+</div>
 
 <!-- ============ TOAST ============ -->
 <div class="toast" id="toast"></div>
@@ -456,7 +526,7 @@ tbody tr:last-child td{border-bottom:none}
 <div class="modal-overlay" id="orderModal">
   <div class="modal" style="max-width:860px">
     <div class="modal-header">
-      <h2>📝 修改报单 — 直接修改各渠道报单总数</h2>
+      <h2>📝 修改报单 — 直接修改各渠道报单金额</h2>
       <button class="close" onclick="closeOrderModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -475,13 +545,13 @@ tbody tr:last-child td{border-bottom:none}
         </div>
       </div>
       <div style="font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:4px">
-        📊 各渠道报单（笔数 / 金额·万元）<span style="font-weight:400;color:var(--gray-400);font-size:12px">— 直接修改现有数值即为新总数，留空则该渠道报单清零</span>
+        📊 各渠道报单金额（万元）<span style="font-weight:400;color:var(--gray-400);font-size:12px">— 直接修改现有金额即为新值，留空则该渠道报单清零</span>
       </div>
       <div class="order-edit-grid" id="orderEditGrid">
         <!-- JS 动态渲染 -->
       </div>
       <div class="order-total-bar" style="margin-top:14px;margin-bottom:0">
-        <span class="totals">合计报单：<b id="orderTotalCnt">0</b> 笔 &nbsp;·&nbsp; 金额：<b id="orderTotalAmt">0</b> 万元</span>
+        <span class="totals">合计金额：<b id="orderTotalAmt">0</b> 万元</span>
         <span style="font-size:12px;color:var(--gray-400)">保存后将整体替换该产品原报单数据</span>
       </div>
     </div>
@@ -560,10 +630,6 @@ function shortAmount(n) {
   if (n >= 100000000) return (n/100000000).toFixed(2) + '亿';
   if (n >= 10000) return (n/10000).toFixed(0) + '万';
   return n.toLocaleString();
-}
-/** 报单总笔数 = 各渠道笔数之和 */
-function getTotalOrders() {
-  return products.reduce((s,p) => s + p.orders.reduce((a,o) => a + (o.count||0), 0), 0);
 }
 /** 报单总金额 = 各渠道金额之和（单位：元） */
 function getTotalAmount() {
@@ -876,15 +942,12 @@ function renderAll() {
 
 function renderStats() {
   const total = products.length;
-  const orders = getTotalOrders();
   const amount = getTotalAmount();
   const channels = getActiveChannels();
-  const avg = orders > 0 ? Math.round(amount / orders / 10000) : 0;
-  document.getElementById('sTotal').textContent = total;
-  document.getElementById('sOrders').textContent = orders;
-  document.getElementById('sAmount').textContent = shortAmount(amount);
-  document.getElementById('sChannels').textContent = channels + '/' + CHANNELS.length;
-  document.getElementById('sAvg').textContent = avg;
+  const el = id => document.getElementById(id);
+  if (el('sTotal')) el('sTotal').textContent = total;
+  if (el('sAmount')) el('sAmount').textContent = shortAmount(amount);
+  if (el('sChannels')) el('sChannels').textContent = channels + '/' + CHANNELS.length;
 }
 
 function renderProductList() {
@@ -944,10 +1007,9 @@ function renderProductCard(p, idx) {
       </div>
       <div class="right">
         <div class="order-summary">
-          <span title="报单总数（笔）">📋 ${totalCnt}笔</span>
           <span class="amt" title="报单总金额">💰 ${shortAmount(totalAmt)}</span>
         </div>
-        <button class="btn btn-sm btn-accent" onclick="event.stopPropagation();openOrderModal('${p.id}')" title="直接修改该产品的报单总数">✏️ 修改报单</button>
+        <button class="btn btn-sm btn-accent" onclick="event.stopPropagation();openOrderModal('${p.id}')" title="直接修改该产品的报单金额">✏️ 修改报单</button>
         <button class="btn-icon danger" onclick="event.stopPropagation();deleteProduct('${p.id}')" title="删除此产品">🗑️</button>
         <span class="arrow">▼</span>
       </div>
@@ -970,7 +1032,7 @@ function renderProductCard(p, idx) {
 
       ${p.desc ? `<div style="background:#fefce8;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:13px;color:#92400e">${p.desc}</div>` : ''}
 
-      <div class="section-title">📊 渠道报单统计 <span class="count">${totalCnt}笔 / ${shortAmount(totalAmt)}</span></div>
+      <div class="section-title">📊 渠道报单统计 <span class="count">${shortAmount(totalAmt)}</span></div>
       <div class="channel-summary-grid">
         ${CHANNELS.map(ch => {
           const data = channelMap[ch];
@@ -978,17 +1040,16 @@ function renderProductCard(p, idx) {
             return `<div class="channel-summary-item" style="border-left:3px solid ${CHANNEL_COLORS[ch]||'#718096'}">
               <div class="ch-name">${ch}</div>
               <div class="ch-amt">${shortAmount(data.amount)}</div>
-              <div class="ch-cnt">${data.count}笔</div>
             </div>`;
           }
           return `<div class="channel-summary-item ch-empty">
             <div class="ch-name" style="color:var(--gray-400)">${ch}</div>
-            <div class="ch-cnt">—</div>
+            <div style="font-size:11px;color:var(--gray-300)">—</div>
           </div>`;
         }).join('')}
       </div>
 
-      <div class="section-title" style="margin-top:16px">📋 渠道报单明细 <span class="count">${totalCnt}笔</span></div>
+      <div class="section-title" style="margin-top:16px">📋 渠道报单明细 <span class="count">${shortAmount(totalAmt)}</span></div>
       ${orders.length === 0 ? `
         <div style="text-align:center;padding:24px;color:var(--gray-400);font-size:13px">暂无报单记录，请点击上方「修改报单」添加</div>
       ` : `
@@ -996,9 +1057,7 @@ function renderProductCard(p, idx) {
         <table>
           <thead><tr>
             <th>渠道</th>
-            <th class="text-right">报单笔数</th>
             <th class="text-right">报单金额</th>
-            <th class="text-right">平均单笔</th>
             <th>报单日期</th>
             <th>备注</th>
             <th style="width:120px">操作</th>
@@ -1006,12 +1065,9 @@ function renderProductCard(p, idx) {
           <tbody>
           ${orders.map(o => {
             const color = CHANNEL_COLORS[o.channel] || '#718096';
-            const avg = (o.count||1) > 0 ? Math.round((o.amount||0) / (o.count||1) / 10000) : 0;
             return `<tr>
               <td><span style="color:${color};font-weight:600">${o.channel}</span></td>
-              <td class="text-right" style="font-weight:600">${o.count||0} 笔</td>
               <td class="text-right" style="font-weight:600">${fmtAmount(o.amount)}</td>
-              <td class="text-right">${avg} 万</td>
               <td>${o.date||'—'}</td>
               <td style="color:var(--gray-400);max-width:120px;overflow:hidden;text-overflow:ellipsis">${o.note||'—'}</td>
               <td>
@@ -1061,9 +1117,9 @@ function filterProducts() {
 function deleteProduct(pid) {
   const p = products.find(x => x.id === pid);
   if (!p) return;
-  const orderCount = (p.orders || []).reduce((s,o) => s + (o.count||0), 0);
-  const msg = orderCount > 0
-    ? `确定要删除「${p.name}」吗？\n该产品下还有 ${orderCount} 笔报单将一同删除！`
+  const hasOrders = (p.orders || []).length > 0;
+  const msg = hasOrders
+    ? `确定要删除「${p.name}」吗？\n该产品下的报单数据将一同删除！`
     : `确定要删除「${p.name}」吗？`;
   if (!confirm(msg)) return;
   products = products.filter(x => x.id !== pid);
@@ -1077,7 +1133,7 @@ function clearChannel(pid, channel) {
   if (!p) return;
   const o = p.orders.find(x => x.channel === channel);
   if (!o) return;
-  if (!confirm(`确定要清空「${p.name}」在 ${channel} 的报单吗？（${o.count||0}笔 / ${fmtAmount(o.amount)}）`)) return;
+  if (!confirm(`确定要清空「${p.name}」在 ${channel} 的报单吗？（${fmtAmount(o.amount)}）`)) return;
   p.orders = p.orders.filter(x => x.channel !== channel);
   renderAll();
   toast(`🗑️ 已清空 ${channel} 的报单`);
@@ -1122,7 +1178,7 @@ function importDataJSON() {
         if (!confirm(`将导入 ${arr.length} 个产品，是否覆盖当前所有数据？`)) return;
         products = arr.map(migrateProduct);
         renderAll();
-        toast(`✅ 已导入 ${products.length} 个产品，共 ${getTotalOrders()} 笔报单`);
+        toast(`✅ 已导入 ${products.length} 个产品`);
       } catch(e) {
         toast('JSON 解析失败，请检查文件格式', 'error');
       }
@@ -1371,11 +1427,6 @@ function renderOrderEditGrid() {
     const hasData = !!cur;
     return `<div class="order-edit-item ${hasData ? 'has-data' : ''} ${ch === hl ? 'hl' : ''}" data-channel="${ch}">
       <div class="oe-name" style="color:${color}" title="${ch}">${ch}</div>
-      <div class="oe-field oe-cnt">
-        <label>笔数</label>
-        <input type="number" id="cnt_${i}" min="0" step="1" value="${cur ? cur.count : ''}"
-               placeholder="0" oninput="updateOrderTotal()" title="${ch} 报单笔数">
-      </div>
       <div class="oe-field oe-amt">
         <label>金额</label>
         <input type="number" id="amt_${i}" min="0" step="0.01" value="${cur ? (cur.amount/10000).toFixed(2) : ''}"
@@ -1390,7 +1441,7 @@ function renderOrderEditGrid() {
     : `「${p.name}」暂无报单，填写后即为新增`;
 }
 
-/** 清空某个渠道的两个输入框 */
+/** 清空某个渠道的金额输入框 */
 function clearChannelField(channel) {
   document.querySelectorAll('.order-edit-item').forEach(item => {
     if (item.dataset.channel === channel) {
@@ -1401,16 +1452,14 @@ function clearChannelField(channel) {
 }
 
 function updateOrderTotal() {
-  let cnt = 0, amt = 0;
+  let amt = 0;
   document.querySelectorAll('.order-edit-item').forEach(item => {
-    const c = parseInt(item.querySelector('.oe-cnt input').value) || 0;
     const a = parseFloat(item.querySelector('.oe-amt input').value) || 0;
-    item.classList.toggle('has-data', c > 0 || a > 0);
-    cnt += c;
+    item.classList.toggle('has-data', a > 0);
     amt += a;
   });
-  document.getElementById('orderTotalCnt').textContent = cnt;
-  document.getElementById('orderTotalAmt').textContent = amt.toFixed(2).replace(/\.00$/,'');
+  const el = document.getElementById('orderTotalAmt');
+  if (el) el.textContent = amt.toFixed(2).replace(/\.00$/,'');
 }
 
 function saveOrders() {
@@ -1423,13 +1472,12 @@ function saveOrders() {
   const newOrders = [];
   document.querySelectorAll('.order-edit-item').forEach(item => {
     const channel = item.dataset.channel;
-    let c = parseInt(item.querySelector('.oe-cnt input').value) || 0;
-    let a = Math.round((parseFloat(item.querySelector('.oe-amt input').value) || 0) * 10000);
-    if (c <= 0 && a <= 0) return;          // 全空 → 无报单
-    if (c <= 0 && a > 0) { toast(`${channel}：有金额但笔数为0，已自动按1笔处理`); c = 1; } // 有金额但无笔数 → 至少1笔
+    const a = Math.round((parseFloat(item.querySelector('.oe-amt input').value) || 0) * 10000);
+    if (a <= 0) return;          // 无金额 → 该渠道无报单
+    const old = p.orders.find(o => o.channel === channel);
     newOrders.push({
       id: 'CH' + Date.now() + Math.random().toString(36).slice(2,6),
-      channel, count: c, amount: a, date, note
+      channel, count: (old && old.count) || 1, amount: a, date, note
     });
   });
 
@@ -1437,13 +1485,12 @@ function saveOrders() {
     if (!confirm(`「${p.name}」所有渠道报单都将被清空，确定吗？`)) return;
   }
 
-  const totalCnt = newOrders.reduce((s,o) => s + o.count, 0);
   const totalAmt = newOrders.reduce((s,o) => s + o.amount, 0);
 
   p.orders = newOrders;
   closeOrderModal();
   renderAll();
-  toast(`✅ 已更新「${p.name}」报单：${totalCnt}笔 / ${shortAmount(totalAmt)}`);
+  toast(`✅ 已更新「${p.name}」报单：${shortAmount(totalAmt)}`);
 }
 
 // ============================================================
@@ -1489,7 +1536,6 @@ const MATRIX_ROWS = [
   { key: 'knockinObs',    label: '敲入观察' },
   { key: 'dividendLine',  label: '派息线' },
   { key: 'monthlyRate',   label: '敲出/红利票息(费税后)' },
-  { key: 'orderCount',    label: '报单笔数' },
   { key: 'orderAmount',   label: '报单金额' },
   { key: 'minAmount',     label: '产品起点' }
 ];
@@ -1589,10 +1635,183 @@ function exportListCSV() {
 }
 
 // ============================================================
+// 登录鉴权（客户端门禁）：内置管理员 + 云端账号库
+// ⚠️ 说明：这是静态网页的访问门禁，用于挡住未经授权的人查看数据；
+//    任何能查看网页源码的人都可绕过，请勿存放机密信息。
+// ============================================================
+
+const ACCOUNTS_FILE = 'ltxx_accounts.json';
+const SESSION_KEY = 'ltxx_session_v1';
+
+// 内置管理员（不可删除，云端账号库丢失时的保底入口）
+const ADMIN_USER = 'yzy';
+const ADMIN_SHA = '1c4ec2661e3f8d5a97bc3516ef46d7728d51751d76fff3160e819fd42e628411';
+const ADMIN_FNV = 'f76fe479c9409c1a4';
+
+let _accounts = [];          // 云端账号库（不含内置管理员）
+let _accountsLoaded = false;
+
+/** 密码哈希：优先 Web Crypto SHA-256；不支持时用 FNV-1a 双轮（门禁级） */
+async function hashPw(pw) {
+  let sha = null;
+  try {
+    if (window.crypto && crypto.subtle) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+      sha = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch(e) {}
+  let h1 = 0x811c9dc5, h2 = 0x01000193;
+  for (let i = 0; i < pw.length; i++) {
+    const c = pw.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 16777619) >>> 0;
+    h2 = Math.imul(h2 ^ ((c * 31) >>> 0), 2246822519) >>> 0;
+  }
+  const fnv = 'f' + ('00000000' + h1.toString(16)).slice(-8) + ('00000000' + h2.toString(16)).slice(-8);
+  return { sha, fnv };
+}
+
+/** 从云端 gist 加载账号库 */
+async function loadAccounts() {
+  try {
+    const res = await fetch(CLOUD.gistUrl(), { headers: CLOUD.headers() });
+    if (!res.ok) return;
+    const d = await res.json();
+    const file = d.files && d.files[ACCOUNTS_FILE];
+    if (file && file.content) {
+      const data = JSON.parse(file.content);
+      if (Array.isArray(data.accounts)) _accounts = data.accounts;
+    }
+  } catch(e) {}
+  _accountsLoaded = true;
+}
+
+/** 保存账号库到云端 gist（另一文件，不影响产品数据） */
+async function saveAccounts() {
+  try {
+    const content = JSON.stringify({ accounts: _accounts, updatedAt: Date.now() });
+    const res = await fetch(CLOUD.gistUrl(), {
+      method: 'PATCH',
+      headers: CLOUD.headers(),
+      body: JSON.stringify({ files: { [ACCOUNTS_FILE]: { content } } })
+    });
+    return res.ok;
+  } catch(e) { return false; }
+}
+
+async function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  if (!u || !p) { err.textContent = '请输入账号和密码'; return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = '验证中...';
+  try {
+    if (!_accountsLoaded) await loadAccounts();
+    const { sha, fnv } = await hashPw(p);
+    const isAdmin = (u === ADMIN_USER) && (sha === ADMIN_SHA || fnv === ADMIN_FNV);
+    const acc = _accounts.find(a => a.u === u);
+    const isUser = !!acc && (sha === acc.h || fnv === acc.f);
+    if (isAdmin || isUser) {
+      sessionStorage.setItem(SESSION_KEY, u);
+      showAppAfterLogin(u);
+      err.textContent = '';
+    } else {
+      err.textContent = '账号或密码错误';
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = '登 录';
+  }
+}
+
+function showAppAfterLogin(u) {
+  document.getElementById('loginOverlay').style.display = 'none';
+  const isAdmin = u === ADMIN_USER;
+  document.getElementById('headerUser').textContent = '👤 ' + u + (isAdmin ? ' · 管理员' : '');
+  document.getElementById('headerUser').style.display = '';
+  document.getElementById('btnManageAccounts').style.display = isAdmin ? '' : 'none';
+  document.getElementById('btnLogout').style.display = '';
+}
+
+function logout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  location.reload();
+}
+
+// ============================================================
+// 账号管理（仅管理员）
+// ============================================================
+
+function openAccountModal() {
+  renderAccountList();
+  document.getElementById('accNewUser').value = '';
+  document.getElementById('accNewPass').value = '';
+  document.getElementById('accountModal').classList.add('show');
+}
+function closeAccountModal() {
+  document.getElementById('accountModal').classList.remove('show');
+}
+function renderAccountList() {
+  const tbody = document.getElementById('accListBody');
+  const rows = [
+    `<tr>
+      <td style="font-weight:600">${ADMIN_USER} <span style="color:var(--gray-400);font-weight:400;font-size:11px">（内置）</span></td>
+      <td><span class="st st-yellow">管理员</span></td>
+      <td><span style="color:var(--gray-400);font-size:12px">不可删除</span></td>
+    </tr>`,
+    ..._accounts.map(a => `<tr>
+      <td>${a.u}</td>
+      <td><span class="st st-blue">普通用户</span></td>
+      <td><button class="btn-sm btn-outline-danger" onclick="deleteAccount('${a.u}')" style="font-size:11px;padding:2px 8px">删除</button></td>
+    </tr>`)
+  ].join('');
+  document.getElementById('accCount').textContent = _accounts.length + 1;
+  tbody.innerHTML = rows;
+}
+async function addAccount() {
+  const u = document.getElementById('accNewUser').value.trim();
+  const p = document.getElementById('accNewPass').value;
+  if (!u || !p) { toast('请填写账号和密码', 'error'); return; }
+  if (u === ADMIN_USER) { toast('该账号为内置管理员，无需添加', 'error'); return; }
+  if (_accounts.some(a => a.u === u)) { toast('账号已存在', 'error'); return; }
+  if (p.length < 6) { toast('密码至少 6 位', 'error'); return; }
+  const { sha, fnv } = await hashPw(p);
+  _accounts.push({ u, h: sha, f: fnv, created: Date.now() });
+  if (await saveAccounts()) {
+    renderAccountList();
+    document.getElementById('accNewUser').value = '';
+    document.getElementById('accNewPass').value = '';
+    toast(`✅ 已新增账号「${u}」，同事刷新页面后即可登录`);
+  } else {
+    toast('保存到云端失败，请检查网络', 'error');
+    _accounts.pop();
+  }
+}
+async function deleteAccount(u) {
+  if (!confirm(`确定删除账号「${u}」吗？`)) return;
+  _accounts = _accounts.filter(a => a.u !== u);
+  if (await saveAccounts()) {
+    renderAccountList();
+    toast(`🗑️ 已删除账号「${u}」`);
+  } else {
+    toast('保存到云端失败，请检查网络', 'error');
+  }
+}
+
+// ============================================================
 // INIT
 // ============================================================
 
 initData();
+initLogin();
+
+function initLogin() {
+  loadAccounts();
+  const sess = sessionStorage.getItem(SESSION_KEY);
+  if (sess) {
+    // 已登录会话 → 直接进入；账号库在后台继续加载
+    showAppAfterLogin(sess);
+  }
+}
 </script>
 </body>
 </html>
