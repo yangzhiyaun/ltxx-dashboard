@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>龙腾鑫享系列 · 产品管理平台</title>
+<style>
+/* ============ Reset & Variables ============ */
+:root {
+  --primary: #1a365d;
+  --primary-light: #2b6cb0;
+  --accent: #d69e2e;
+  --accent-light: #f6e05e;
+  --success: #38a169;
+  --warning: #d69e2e;
+  --danger: #e53e3e;
+  --info: #3182ce;
+  --purple: #805ad5;
+  --pink: #d53f8c;
+  --rose: #be123c;
+  --gray-50: #f7fafc;
+  --gray-100: #edf2f7;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e0;
+  --gray-400: #a0aec0;
+  --gray-500: #718096;
+  --gray-600: #4a5568;
+  --gray-700: #2d3748;
+  --gray-800: #1a202c;
+  --bg: #f0f4f8;
+  --card-bg: #fff;
+  --shadow: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,.12);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --transition: all .2s ease;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--gray-800);line-height:1.6}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:3px}
+
+/* ============ Header ============ */
+.header{background:linear-gradient(135deg,#0f2440 0%,var(--primary) 50%,var(--primary-light) 100%);color:#fff;padding:0 40px;height:68px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.header-left{display:flex;align-items:center;gap:14px}
+.header-logo{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;color:var(--primary)}
+.header-title{font-size:18px;font-weight:600;letter-spacing:1px}
+.header-sub{font-size:11px;opacity:.7}
+.header-right{display:flex;align-items:center;gap:16px;font-size:13px;opacity:.85}
+.header-right .badge{background:rgba(255,255,255,.15);padding:3px 14px;border-radius:20px;font-size:12px}
+
+/* ============ Toolbar ============ */
+.toolbar{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:#fff;border-bottom:1px solid var(--gray-200);position:sticky;top:68px;z-index:99;box-shadow:var(--shadow);flex-wrap:wrap;gap:10px}
+.toolbar-left{display:flex;align-items:center;gap:12px}
+.toolbar-left h1{font-size:17px;font-weight:600;color:var(--gray-800)}
+.toolbar-left .count{font-size:13px;color:var(--gray-500);background:var(--gray-100);padding:2px 10px;border-radius:12px}
+.toolbar-right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar-right .search-box{position:relative}
+.toolbar-right .search-box input{padding:7px 14px 7px 32px;border:1px solid var(--gray-200);border-radius:20px;font-size:13px;outline:none;width:200px;transition:var(--transition)}
+.toolbar-right .search-box input:focus{border-color:var(--primary-light);width:260px}
+.toolbar-right .search-box .icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:14px}
+
+/* ============ Buttons ============ */
+.btn{padding:8px 20px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;transition:var(--transition);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-light);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:#c5a000;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn-outline{background:transparent;color:var(--gray-600);border:1px solid var(--gray-200)}
+.btn-outline:hover{background:var(--gray-50);border-color:var(--gray-300)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#c53030;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn-outline-danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}
+.btn-outline-danger:hover{background:#fff5f5}
+.btn-icon{padding:6px 10px;border-radius:50%;background:transparent;border:1px solid var(--gray-200);cursor:pointer;transition:var(--transition);font-size:14px;line-height:1}
+.btn-icon:hover{background:var(--gray-100)}
+.btn-icon.danger{color:var(--danger);border-color:#fed7d7}
+.btn-icon.danger:hover{background:#fff5f5;border-color:var(--danger)}
+
+/* ============ Main ============ */
+.main{max-width:1400px;margin:0 auto;padding:24px 40px 60px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .35s ease}
+
+/* ============ Product Stats ============ */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--card-bg);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);border-left:4px solid var(--primary);transition:var(--transition)}
+.stat-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.stat-card .lbl{font-size:12px;color:var(--gray-500);margin-bottom:2px}
+.stat-card .val{font-size:22px;font-weight:700}
+.stat-card .sub{font-size:12px;color:var(--gray-400);margin-top:2px}
+.stat-card.c-accent{border-left-color:var(--accent)}.stat-card.c-accent .val{color:var(--accent)}
+.stat-card.c-success{border-left-color:var(--success)}.stat-card.c-success .val{color:var(--success)}
+.stat-card.c-info{border-left-color:var(--info)}.stat-card.c-info .val{color:var(--info)}
+.stat-card.c-purple{border-left-color:var(--purple)}.stat-card.c-purple .val{color:var(--purple)}
+.stat-card.c-pink{border-left-color:var(--pink)}.stat-card.c-pink .val{color:var(--pink)}
+
+/* ============ Product Card ============ */
+.product-card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden;transition:var(--transition);border:1px solid transparent}
+.product-card:hover{box-shadow:var(--shadow-md)}
+.product-card.expanded{border-color:var(--primary-light);box-shadow:var(--shadow-md)}
+.product-card-header{padding:18px 24px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:var(--transition)}
+.product-card-header:hover{background:var(--gray-50)}
+.product-card-header .left{display:flex;align-items:center;gap:14px;flex:1;min-width:0}
+.product-card-header .left .name{font-size:16px;font-weight:600;color:var(--gray-800)}
+.product-card-header .left .name .num{color:var(--gray-400);font-weight:400;font-size:13px}
+.product-card-header .left .tags{display:flex;gap:6px;flex-wrap:wrap}
+.product-card-header .left .tags .tag{font-size:11px;padding:2px 10px;border-radius:12px;font-weight:500;white-space:nowrap}
+.tag-fire{background:#fee2e2;color:#dc2626}
+.tag-blue{background:#dbeafe;color:#2563eb}
+.tag-green{background:#d1fae5;color:#059669}
+.tag-yellow{background:#fef3c7;color:#d97706}
+.tag-purple{background:#ede9fe;color:#7c3aed}
+.tag-rose{background:#ffe4e6;color:#be123c;border:1px solid #fecdd3}
+.product-card-header .right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.product-card-header .right .order-summary{font-size:12px;color:var(--gray-500);display:flex;gap:8px;align-items:center}
+.product-card-header .right .order-summary span{background:var(--gray-100);padding:2px 10px;border-radius:10px;font-weight:600}
+.product-card-header .right .order-summary span.amt{color:var(--success)}
+.product-card-header .arrow{font-size:12px;color:var(--gray-400);transition:var(--transition)}
+.product-card.expanded .arrow{transform:rotate(180deg)}
+
+/* ============ Product Detail ============ */
+.product-detail{display:none;border-top:1px solid var(--gray-200);padding:24px}
+.product-card.expanded .product-detail{display:block;animation:fadeIn .3s ease}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:20px}
+.detail-item{padding:12px 16px;background:var(--gray-50);border-radius:var(--radius-sm);border:1px solid var(--gray-100)}
+.detail-item .lbl{font-size:11px;color:var(--gray-400);margin-bottom:2px;text-transform:uppercase;letter-spacing:.3px}
+.detail-item .val{font-size:14px;font-weight:600;color:var(--gray-700)}
+.detail-item .val.highlight{color:var(--accent);font-size:18px}
+.detail-item .val.knockin{color:var(--rose);font-size:18px}
+.detail-item.hidden{display:none}
+
+/* ============ Section Title ============ */
+.section-title{font-size:14px;font-weight:600;color:var(--gray-700);display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--gray-100)}
+.section-title .count{font-size:12px;background:var(--gray-100);padding:0 8px;border-radius:8px;color:var(--gray-500);font-weight:400}
+
+/* ============ Tables ============ */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--gray-50);padding:10px 14px;text-align:left;font-weight:600;color:var(--gray-500);border-bottom:2px solid var(--gray-200);font-size:12px;white-space:nowrap}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--gray-100);white-space:nowrap}
+tbody tr:hover{background:var(--gray-50)}
+tbody tr:last-child td{border-bottom:none}
+.text-right{text-align:right}
+
+/* ============ Status Tags ============ */
+.st{display:inline-flex;padding:2px 10px;border-radius:10px;font-size:12px;font-weight:500}
+.st-green{background:#d1fae5;color:#065f46}
+.st-yellow{background:#fef3c7;color:#92400e}
+.st-blue{background:#dbeafe;color:#1e40af}
+.st-gray{background:var(--gray-100);color:var(--gray-600)}
+.st-rose{background:#ffe4e6;color:#9f1239}
+
+/* ============ Modal ============ */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.modal-overlay.show{display:flex;animation:fadeIn .2s ease}
+.modal{background:#fff;border-radius:var(--radius);width:100%;max-width:720px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:fadeIn .25s ease}
+.modal-header{padding:18px 24px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;border-radius:var(--radius) var(--radius) 0 0}
+.modal-header h2{font-size:16px;font-weight:600}
+.modal-header .close{width:32px;height:32px;border:none;background:var(--gray-100);border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.modal-header .close:hover{background:var(--gray-200)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--gray-200);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff;border-radius:0 0 var(--radius) var(--radius)}
+
+/* ============ Form ============ */
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:13px;font-weight:500;color:var(--gray-600);margin-bottom:4px}
+.form-group label .note{font-weight:400;color:var(--gray-400);font-size:11px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;outline:none;transition:var(--transition);font-family:inherit;background:#fff}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(43,108,176,.12)}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-hint{font-size:11px;color:var(--gray-400);margin-top:3px}
+.form-group .hidden-field{background:var(--gray-50);border-style:dashed;color:var(--gray-400)}
+
+/* ============ Channel Form ============ */
+.channel-tag-select{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.channel-tag-select .ch-item{padding:5px 12px;border:1px solid var(--gray-200);border-radius:16px;font-size:12px;cursor:pointer;transition:var(--transition);background:#fff;color:var(--gray-600)}
+.channel-tag-select .ch-item:hover{border-color:var(--primary-light);color:var(--primary)}
+.channel-tag-select .ch-item.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* ============ 修改报单：渠道直接编辑 ============ */
+.order-edit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:4px}
+.order-edit-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);background:#fff;transition:var(--transition)}
+.order-edit-item:hover{border-color:var(--primary-light);box-shadow:0 0 0 1px rgba(43,108,176,.12)}
+.order-edit-item .oe-name{font-size:12px;font-weight:600;min-width:56px;white-space:nowrap}
+.order-edit-item .oe-field{flex:1;min-width:0;display:flex;align-items:center;gap:4px}
+.order-edit-item .oe-field label{font-size:10px;color:var(--gray-400);white-space:nowrap}
+.order-edit-item .oe-field input{width:100%;padding:4px 6px;border:1px solid var(--gray-200);border-radius:4px;font-size:13px;outline:none;text-align:right;transition:var(--transition)}
+.order-edit-item .oe-field input:focus{border-color:var(--primary-light);box-shadow:0 0 0 2px rgba(43,108,176,.1)}
+.order-edit-item .oe-field input::placeholder{color:var(--gray-300);font-size:11px}
+.order-edit-item .oe-cnt{width:64px}
+.order-edit-item .oe-amt{width:86px}
+.order-edit-item .oe-unit{font-size:10px;color:var(--gray-400)}
+.order-edit-item .oe-remove{width:22px;height:22px;border:none;background:#fff5f5;color:var(--danger);border-radius:4px;cursor:pointer;font-size:12px;line-height:1;display:none}
+.order-edit-item.has-data .oe-remove{display:block}
+.order-edit-item.has-data .oe-remove:hover{background:#fed7d7}
+.order-edit-item.hl{border-color:var(--accent);box-shadow:0 0 0 2px rgba(214,158,46,.25)}
+
+/* ============ 产品列表表格 ============ */
+.list-modal .modal{max-width:1200px}
+.list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.list-toolbar .info{font-size:13px;color:var(--gray-500)}
+.list-table-wrap{overflow:auto;max-height:60vh;border:1px solid var(--gray-200);border-radius:var(--radius-sm)}
+.list-caption{font-size:13px;font-weight:600;color:var(--gray-700);padding:10px 14px;background:linear-gradient(135deg,#eff6ff,#fff);border-bottom:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center}
+.list-caption span{font-weight:400;color:var(--gray-400);font-size:12px}
+.list-table-wrap table{font-size:12px;border-collapse:separate;border-spacing:0}
+.list-table-wrap thead th{position:sticky;top:0;background:#fff;z-index:2;box-shadow:0 1px 0 var(--gray-200);min-width:120px}
+.list-table-wrap thead th.prod-col{background:var(--primary);color:#fff;font-weight:600;border-bottom:none}
+.list-table-wrap thead th.corner{background:#fff;z-index:3}
+.list-table-wrap .row-label{position:sticky;left:0;background:var(--gray-50);font-weight:600;color:var(--gray-600);text-align:left;min-width:130px;z-index:1;box-shadow:1px 0 0 var(--gray-200);font-size:12px}
+.list-table-wrap thead th.corner{position:sticky;left:0;top:0;z-index:4}
+.list-table-wrap tbody td{white-space:nowrap;text-align:center;min-width:120px}
+.list-table-wrap tbody tr:hover{background:#f8fafc}
+.list-table-wrap tbody tr:hover .row-label{background:#eef2f7}
+.list-table-wrap tr.knockin-row td{color:var(--rose);font-weight:700;background:#fff5f5}
+.list-table-wrap tr.knockin-row:hover td{background:#ffe9ea}
+
+/* ============ Empty State ============ */
+.empty-state{text-align:center;padding:60px 20px;color:var(--gray-400)}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.empty-state p{font-size:14px;margin-bottom:16px}
+
+/* ============ Toast ============ */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--gray-800);color:#fff;padding:12px 28px;border-radius:var(--radius-sm);font-size:14px;z-index:300;display:none;animation:fadeIn .3s ease;box-shadow:var(--shadow-lg)}
+.toast.show{display:block}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--danger)}
+
+/* ============ Channel Summary in Product ============ */
+.channel-summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:16px}
+.channel-summary-item{padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--gray-200);text-align:center;background:#fff}
+.channel-summary-item .ch-name{font-size:12px;font-weight:600;color:var(--gray-600)}
+.channel-summary-item .ch-amt{font-size:16px;font-weight:700;color:var(--gray-800);margin-top:2px}
+.channel-summary-item .ch-cnt{font-size:11px;color:var(--gray-400)}
+.channel-summary-item.ch-empty{opacity:.5}
+
+/* ============ 报单汇总条 ============ */
+.order-total-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1px solid #fde68a;border-radius:var(--radius-sm);padding:12px 18px;margin-bottom:16px;flex-wrap:wrap}
+.order-total-bar .totals{font-size:14px;font-weight:600;color:#92400e;display:flex;gap:20px;flex-wrap:wrap}
+.order-total-bar .totals b{font-size:20px;color:var(--accent)}
+
+/* ============ Responsive ============ */
+@media(max-width:1024px){.main{padding:20px}.header{padding:0 20px}.toolbar{padding:12px 20px}}
+@media(max-width:640px){
+  .header-title{font-size:15px}.header-right .badge{display:none}
+  .toolbar{flex-direction:column;align-items:stretch}.toolbar-left{justify-content:center}
+  .toolbar-right{flex-direction:column;gap:8px}.toolbar-right .search-box input{width:100%}.toolbar-right .search-box input:focus{width:100%}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .form-row{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr 1fr}
+  .product-card-header{flex-direction:column;align-items:flex-start;gap:8px}
+  .product-card-header .right{align-self:flex-end}
+  .modal{max-width:100%;margin:10px;border-radius:var(--radius)}
+}
+
+/* ============ Print (产品列表打印) ============ */
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  body{background:#fff}
+  .header,.toolbar,.toast,.modal-overlay .modal-header,.modal-overlay .modal-footer,.btn,.no-print{display:none!important}
+  .modal-overlay{position:static;background:#fff;padding:0;backdrop-filter:none;display:block!important;overflow:visible}
+  .modal{max-width:100%;box-shadow:none;max-height:none;overflow:visible;border-radius:0;margin:0}
+  .modal-body{padding:0}
+  .list-table-wrap{max-height:none;border:none;overflow:visible}
+  .list-table-wrap thead th,.list-table-wrap .row-label,.list-table-wrap thead th.corner{position:static}
+  .list-table-wrap thead th.prod-col{background:var(--primary);color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table{font-size:10px}
+  tbody td{padding:5px 6px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="header-left">
+    <div class="header-logo">龙</div>
+    <div>
+      <div class="header-title">龙腾鑫享系列 · 产品管理平台</div>
+      <div class="header-sub">Longteng Xinxiang Series Management</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span id="headerDate"></span>
+    <span id="saveStatus" style="font-size:12px;opacity:.8">💾 本地已保存</span>
+    <span id="syncStatus" style="font-size:12px;opacity:.8"></span>
+    <span class="badge" id="headerProductCount">0 个产品</span>
+  </div>
+</header>
+
+<!-- 云端异常提示条 -->
+<div id="cloudBanner" style="display:none;background:#fef3c7;color:#92400e;padding:9px 40px;font-size:13px;border-bottom:1px solid #fde68a;position:relative">
+  <span>☁️ <b>云端同步异常</b>：请检查网络（需要能访问 api.github.com）或联系管理员检查页面内置的 GitHub 令牌是否过期。</span>
+  <button onclick="dismissCloudBanner()" title="关闭提示" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#92400e;font-size:15px">✕</button>
+</div>
+
+<!-- ============ TOOLBAR ============ -->
+<div class="toolbar">
+  <div class="toolbar-left">
+    <h1>📋 产品列表</h1>
+    <span class="count" id="productCount">0</span>
+  </div>
+  <div class="toolbar-right">
+    <div class="search-box">
+      <span class="icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="搜索产品名称..." oninput="filterProducts()">
+    </div>
+    <button class="btn btn-primary" onclick="openProductModal()">➕ 新增产品</button>
+    <button class="btn btn-accent" onclick="openOrderModal()">📝 修改报单</button>
+    <button class="btn btn-outline" onclick="openListModal()" style="color:var(--purple);border-color:var(--purple)" title="将全部产品信息汇总为一个表格">📋 生成产品列表</button>
+    <div style="width:1px;height:24px;background:var(--gray-200);margin:0 2px"></div>
+    <button class="btn btn-sm btn-outline" onclick="exportDataJSON()" title="导出 JSON 数据文件（用于备份/迁移）">📤 导出</button>
+    <button class="btn btn-sm btn-outline" onclick="importDataJSON()" title="从 JSON 文件导入数据">📥 导入</button>
+    <button class="btn btn-sm btn-outline" onclick="forceCloudSync()" title="立即拉取/推送云端最新数据" style="color:var(--info);border-color:var(--info)">☁️ 同步</button>
+  </div>
+</div>
+
+<!-- ============ MAIN ============ -->
+<main class="main">
+  <div class="stats-row">
+    <div class="stat-card"><div class="lbl">产品总数</div><div class="val" id="sTotal">0</div><div class="sub">个系列产品</div></div>
+    <div class="stat-card c-accent"><div class="lbl">报单总笔数</div><div class="val" id="sOrders">0</div><div class="sub">笔</div></div>
+    <div class="stat-card c-success"><div class="lbl">报单总金额</div><div class="val" id="sAmount">0</div><div class="sub">累计</div></div>
+    <div class="stat-card c-info"><div class="lbl">覆盖渠道</div><div class="val" id="sChannels">0</div><div class="sub">个</div></div>
+    <div class="stat-card c-purple"><div class="lbl">平均单笔</div><div class="val" id="sAvg">0</div><div class="sub">万元</div></div>
+  </div>
+
+  <div id="productList"><!-- Products rendered here --></div>
+</main>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast"></div>
+
+<!-- ============ MODAL: 新增产品 ============ -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📋 新增龙腾鑫享产品</h2>
+      <button class="close" onclick="closeProductModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- 智能解析区 -->
+      <div style="background:linear-gradient(135deg,#eff6ff,#fefce8);border:2px dashed #93c5fd;border-radius:10px;padding:18px 20px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="font-size:18px">🤖</span>
+          <span style="font-weight:600;font-size:14px;color:var(--gray-700)">智能解析 — 粘贴产品介绍文字自动识别</span>
+        </div>
+        <textarea id="parseInput" rows="6" style="width:100%;padding:12px 14px;border:1px solid #bfdbfe;border-radius:8px;font-size:13px;outline:none;font-family:inherit;resize:vertical;background:#fff;transition:var(--transition)" placeholder="在此粘贴产品介绍文字，例如：
+
+【华夏资本龙腾鑫享575号】
+
+🔥3年期欧式凤凰，月度或有派息率0.97%，最后一次敲出价为68%
+（已锁价，报价为税后、费后）
+🎈【挂钩标的】中证1000指数
+🎈【月度或有派息率】0.97%
+🎈【产品期限】3年
+🎈【募集期】预计8月6日-8月7日
+🎈【敲出界限】101%（0.5%降敲至85%，最后一次敲出价为68%）
+🎈【敲入线】68%，向下32%安全垫，仅到期观察一次
+🎈【派息线】75%
+🎈【持有期限】3～36个月"></textarea>
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="parseProductText()" style="background:#2563eb">⚡ 一键解析</button>
+          <span style="font-size:12px;color:var(--gray-400)">解析后将自动填充下方所有字段，可再手动调整</span>
+        </div>
+      </div>
+
+      <!-- 手动输入区 -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <span style="font-size:14px">✏️</span>
+        <span style="font-weight:600;font-size:14px;color:var(--gray-700)">手动确认 / 编辑字段</span>
+        <span style="font-size:11px;color:var(--gray-400)">（已解析的字段会自动填入，直接修改即可）</span>
+      </div>
+
+      <div class="form-group">
+        <label>产品全称 <span style="color:var(--danger)">*</span></label>
+        <input type="text" id="fName" placeholder="例：华夏资本龙腾鑫享575号">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>产品类型</label>
+          <input type="text" id="fType" placeholder="例：3年期欧式凤凰">
+        </div>
+        <div class="form-group">
+          <label>报价</label>
+          <input type="text" id="fMonthlyRate" placeholder="例：0.97%">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>产品标语/简介</label>
+        <textarea id="fDesc" rows="2" placeholder="显示在产品名称下方的简要描述"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>挂钩标的</label>
+          <input type="text" id="fUnderlying" placeholder="例：中证1000指数">
+        </div>
+        <div class="form-group">
+          <label>产品期限</label>
+          <input type="text" id="fTerm" placeholder="例：3年">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>募集期</label>
+          <input type="text" id="fRaisePeriod" placeholder="例：预计8月6日-8月7日">
+        </div>
+        <div class="form-group">
+          <label>持有期限</label>
+          <input type="text" id="fHoldingPeriod" placeholder="例：3～36个月">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>敲出界限</label>
+          <input type="text" id="fKnockoutLevel" placeholder="例：101%（0.5%降敲至85%）">
+        </div>
+        <div class="form-group">
+          <label>敲入线 <span style="color:var(--rose)">（首页展示）</span></label>
+          <input type="text" id="fKnockinLevel" placeholder="例：68%">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>敲入观察方式</label>
+          <input type="text" id="fKnockinObs" placeholder="例：仅到期观察一次">
+        </div>
+        <div class="form-group">
+          <label>派息线</label>
+          <input type="text" id="fDividendLine" placeholder="例：75%">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>管理费 <span class="note">（录入用，前端不展示）</span></label>
+          <input type="text" id="fMgmtFee" class="hidden-field" placeholder="例：绝对1.3%（代销费绝对1%）">
+        </div>
+        <div class="form-group">
+          <label>产品起点 <span class="note">（录入用，前端不展示）</span></label>
+          <input type="text" id="fMinAmount" class="hidden-field" placeholder="例：1000万起，专业投资者+资管合格投资者">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeProductModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveProduct()">✓ 确认添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: 修改报单（直接在原数值上修改报单总数） ============ -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal" style="max-width:860px">
+    <div class="modal-header">
+      <h2>📝 修改报单 — 直接修改各渠道报单总数</h2>
+      <button class="close" onclick="closeOrderModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>选择产品</label>
+        <select id="orderProductSelect" onchange="onOrderProductChange()"><option value="">-- 请选择 --</option></select>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <label style="font-size:13px;font-weight:500;color:var(--gray-600)">报单日期</label>
+          <input type="date" id="orderDate" style="padding:7px 12px;border:1px solid var(--gray-200);border-radius:6px;font-size:13px;outline:none">
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex:1;min-width:200px">
+          <label style="font-size:13px;font-weight:500;color:var(--gray-600)">备注</label>
+          <input type="text" id="orderNote" placeholder="可选备注，写入各渠道记录" style="flex:1;padding:7px 12px;border:1px solid var(--gray-200);border-radius:6px;font-size:13px;outline:none">
+        </div>
+      </div>
+      <div style="font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:4px">
+        📊 各渠道报单（笔数 / 金额·万元）<span style="font-weight:400;color:var(--gray-400);font-size:12px">— 直接修改现有数值即为新总数，留空则该渠道报单清零</span>
+      </div>
+      <div class="order-edit-grid" id="orderEditGrid">
+        <!-- JS 动态渲染 -->
+      </div>
+      <div class="order-total-bar" style="margin-top:14px;margin-bottom:0">
+        <span class="totals">合计报单：<b id="orderTotalCnt">0</b> 笔 &nbsp;·&nbsp; 金额：<b id="orderTotalAmt">0</b> 万元</span>
+        <span style="font-size:12px;color:var(--gray-400)">保存后将整体替换该产品原报单数据</span>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <span id="orderModifyHint" style="font-size:12px;color:var(--gray-400)"></span>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="closeOrderModal()">取消</button>
+        <button class="btn btn-accent" onclick="saveOrders()">✓ 保存修改</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: 生成产品列表 ============ -->
+<div class="modal-overlay list-modal" id="listModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📋 产品列表（全部产品信息汇总）</h2>
+      <button class="close" onclick="closeListModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="list-toolbar">
+        <span class="info">共 <b id="listCount">0</b> 个产品</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm btn-outline" onclick="copyListCSV()">📋 复制表格</button>
+          <button class="btn btn-sm btn-outline" onclick="exportListCSV()">📥 导出CSV</button>
+          <button class="btn btn-sm btn-outline" onclick="window.print()">🖨 打印</button>
+        </div>
+      </div>
+      <div class="list-table-wrap" id="listTableWrap">
+        <!-- 表格 JS 渲染 -->
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeListModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+
+const CHANNELS = [
+  '中信证券','中金财富','中信建投','嘉实财富','银河证券',
+  '华泰证券','国金证券','广发证券','中银国际','华夏财富',
+  '平安证券','东方财富','五矿证券','西南证券','浙商证券','西部证券'
+];
+
+const CHANNEL_COLORS = {
+  '中信证券':'#1a365d','中金财富':'#805ad5','中信建投':'#e53e3e','嘉实财富':'#d69e2e',
+  '银河证券':'#3182ce','华泰证券':'#38a169','国金证券':'#d53f8c','广发证券':'#2b6cb0',
+  '中银国际':'#718096','华夏财富':'#f6ad55','平安证券':'#48bb78','东方财富':'#4299e1',
+  '五矿证券':'#9f7aea','西南证券':'#fc8181','浙商证券':'#68d391','西部证券':'#63b3ed'
+};
+
+const STORAGE_KEY = 'longteng_dashboard_data_v3';
+
+let products = [];
+
+// ============================================================
+// UTILITY
+// ============================================================
+
+function fmtAmount(n) {
+  if (!n) return '¥0';
+  if (n >= 100000000) return '¥' + (n/100000000).toFixed(2) + '亿';
+  if (n >= 10000) return '¥' + (n/10000).toFixed(0) + '万';
+  return '¥' + n.toLocaleString();
+}
+function shortAmount(n) {
+  if (!n) return '0';
+  if (n >= 100000000) return (n/100000000).toFixed(2) + '亿';
+  if (n >= 10000) return (n/10000).toFixed(0) + '万';
+  return n.toLocaleString();
+}
+/** 报单总笔数 = 各渠道笔数之和 */
+function getTotalOrders() {
+  return products.reduce((s,p) => s + p.orders.reduce((a,o) => a + (o.count||0), 0), 0);
+}
+/** 报单总金额 = 各渠道金额之和（单位：元） */
+function getTotalAmount() {
+  return products.reduce((s,p) => s + p.orders.reduce((a,o) => a + (o.amount||0), 0), 0);
+}
+function getActiveChannels() {
+  const set = new Set();
+  products.forEach(p => p.orders.forEach(o => set.add(o.channel)));
+  return set.size;
+}
+/** 单个产品的渠道汇总 {channel: {count, amount}} */
+function getChannelMap(p) {
+  const map = {};
+  (p.orders||[]).forEach(o => {
+    if (!map[o.channel]) map[o.channel] = { count:0, amount:0 };
+    map[o.channel].count += (o.count||1);
+    map[o.channel].amount += (o.amount||0);
+  });
+  return map;
+}
+
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function setSaveStatus(text, color) {
+  const el = document.getElementById('saveStatus');
+  if (el) { el.textContent = text; el.style.color = color; }
+}
+
+// ============================================================
+// PERSISTENCE: localStorage（本地）+ GitHub Gist 云端共享同步
+// ============================================================
+
+const TS_KEY = 'longteng_local_ts_v3';   // 本地数据最后修改时间戳
+
+// ============================================================
+// CLOUD SYNC: GitHub 私有 Gist（全员经页面内置 token 读写同一文件）
+// 所有使用本页面的人读写同一个 gist 文件，实现多人共享修改
+// ⚠️ 安全说明：token 随页面一起分发，任何拿到页面链接的人都能读写
+//    共享数据（这正是"所有人可修改"的设计）。请把链接视为内部资料，
+//    不要外传；需要更换令牌时直接替换下方 token 字段即可。
+// ============================================================
+
+const CLOUD = {
+  enabled: true,
+  gistId: '33369ccd0e4cb84fef6da08577fa1f19',                 // 私有 gist：龙腾鑫享共享数据
+  token: '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',          // ⚠️ 全员写权限令牌（含 gist+repo scope）
+  fileName: 'ltxx_data.json',
+  pollMs: 45000,                // 自动轮询间隔
+  headers() {
+    return {
+      'Authorization': 'Bearer ' + CLOUD.token,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    };
+  },
+  gistUrl: () => `https://api.github.com/gists/${CLOUD.gistId}`
+};
+
+let _localTs = 0;        // 本地数据时间戳（与云端 meta.updatedAt 比较，较新者胜）
+let _pushScheduled = false;
+
+function setSyncStatus(text, color) {
+  const el = document.getElementById('syncStatus');
+  if (el) { el.textContent = text; el.style.color = color; }
+}
+function showCloudBanner(show) {
+  const el = document.getElementById('cloudBanner');
+  if (el) el.style.display = show ? 'block' : 'none';
+}
+function dismissCloudBanner() { showCloudBanner(false); }
+
+function cloudPayload() {
+  return {
+    meta: { name: '龙腾鑫享数据', updatedAt: _localTs, productCount: products.length },
+    products: products
+  };
+}
+
+/** 本地 → 云端（PATCH gist 文件内容） */
+async function pushToCloud() {
+  if (!CLOUD.enabled) return false;
+  try {
+    const res = await fetch(CLOUD.gistUrl(), {
+      method: 'PATCH',
+      headers: CLOUD.headers(),
+      body: JSON.stringify({ files: { [CLOUD.fileName]: { content: JSON.stringify(cloudPayload()) } } })
+    });
+    if (res.ok) {
+      setSyncStatus('☁️ 已云同步', '#38a169');
+      return true;
+    }
+    const t = await res.text().catch(() => '');
+    if (/401|403|Bad credentials|Must have push access/i.test(t)) {
+      setSyncStatus('☁️ 令牌无效', '#e53e3e');
+      showCloudBanner(true);
+    } else {
+      setSyncStatus('☁️ 同步失败', '#e53e3e');
+    }
+  } catch(e) {
+    setSyncStatus('☁️ 离线', '#a0aec0');
+  }
+  return false;
+}
+
+/** 云端 → 本地 双向协调（时间戳较新者胜） */
+async function cloudReconcile() {
+  if (!CLOUD.enabled) return;
+  try {
+    const res = await fetch(CLOUD.gistUrl(), { headers: CLOUD.headers() });
+    if (!res.ok) {
+      const t = await res.text().catch(() => '');
+      if (/401|403|Bad credentials|Not Found/i.test(t)) { setSyncStatus('☁️ 令牌无效', '#e53e3e'); showCloudBanner(true); }
+      else setSyncStatus('☁️ 同步失败', '#e53e3e');
+      return;
+    }
+    const d = await res.json();
+    const file = d.files && d.files[CLOUD.fileName];
+    if (!file || !file.content) { await pushToCloud(); return; }   // 云端无数据 → 推送本地
+    let payload = null;
+    try { payload = JSON.parse(file.content); } catch(e) { return; }
+    const cloudTs = (payload && payload.meta && payload.meta.updatedAt) || 0;
+    const cloudProducts = payload && Array.isArray(payload.products) ? payload.products : null;
+    if (!cloudProducts) { await pushToCloud(); return; }
+    if (cloudTs > _localTs) {
+      // 云端更新 → 采纳云端数据
+      products = cloudProducts.map(migrateProduct);
+      _localTs = cloudTs;
+      localStorage.setItem(TS_KEY, String(_localTs));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+      renderAll();
+      setSyncStatus('☁️ 已更新云端数据', '#3182ce');
+      toast('☁️ 已同步云端最新数据');
+    } else if (_localTs > cloudTs) {
+      await pushToCloud();   // 本地更新 → 推送到云端
+    } else {
+      setSyncStatus('☁️ 已同步', '#38a169');
+    }
+  } catch(e) {
+    setSyncStatus('☁️ 离线', '#a0aec0');
+  }
+}
+
+/** 数据变更后 2 秒去抖推送到云端 */
+function scheduleCloudPush() {
+  if (!CLOUD.enabled || _pushScheduled) return;
+  _pushScheduled = true;
+  setTimeout(() => { _pushScheduled = false; pushToCloud(); }, 2000);
+}
+
+/** 手动强制同步（先拉后推） */
+async function forceCloudSync() {
+  setSyncStatus('☁️ 同步中...', '#3182ce');
+  await cloudReconcile();
+  await pushToCloud();
+  toast('☁️ 已强制同步');
+}
+
+/** token 已内置，恒为就绪 */
+function checkCloudReady() {
+  showCloudBanner(false);
+  return true;
+}
+
+function saveData() {
+  try {
+    const json = JSON.stringify(products);
+    const prev = localStorage.getItem(STORAGE_KEY);
+    if (json !== prev) _localTs = Date.now();   // 内容有变化才更新时间戳
+    localStorage.setItem(STORAGE_KEY, json);
+    localStorage.setItem(TS_KEY, String(_localTs));
+    setSaveStatus('💾 本地已保存', '#38a169');
+    scheduleCloudPush();
+  } catch(e) {
+    console.warn('本地保存失败:', e);
+    setSaveStatus('⚠️ 保存失败', '#e53e3e');
+  }
+}
+
+function loadLocalData() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return null;
+  try {
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch(e) { return null; }
+}
+
+/** 数据迁移：兼容旧版逐笔报单格式（每笔 count=1）→ 聚合为按渠道的 {count, amount} */
+function migrateProduct(p) {
+  if (!p.orders) p.orders = [];
+  const oldFormat = p.orders.some(o => typeof o.count === 'undefined');
+  if (oldFormat) {
+    const map = {};
+    p.orders.forEach(o => {
+      if (!map[o.channel]) map[o.channel] = { count:0, amount:0, date:o.date||'', note:o.note||'' };
+      map[o.channel].count += 1;
+      map[o.channel].amount += (o.amount||0);
+    });
+    p.orders = Object.entries(map).map(([channel,d]) => ({
+      id: 'CH' + Date.now() + Math.random().toString(36).slice(2,6),
+      channel, count: d.count, amount: d.amount, date: d.date, note: d.note
+    }));
+  }
+  return p;
+}
+
+// ============================================================
+// SEED DATA（与旧版数据等价的聚合格式：2个产品 / 23笔 / 1.18亿）
+// ============================================================
+
+function loadSeedData() {
+  products = [
+    {
+      id: 'prod_1',
+      name: '华夏资本龙腾鑫享575号',
+      type: '3年期欧式凤凰',
+      monthlyRate: '0.97%',
+      desc: '月度或有派息率0.97%，最后一次敲出价为68%（已锁价，报价为税后、费后）',
+      underlying: '中证1000指数', term: '3年',
+      raisePeriod: '预计8月6日-8月7日',
+      knockoutLevel: '101%（0.5%降敲至85%，最后一次敲出价为68%）',
+      knockinLevel: '68%', knockinObs: '仅到期观察一次',
+      dividendLine: '75%', holdingPeriod: '3～36个月',
+      mgmtFee: '绝对1.3%（代销费绝对1%）',
+      minAmount: '1000万起，专业投资者+资管合格投资者',
+      orders: [
+        { id:'o1', channel:'中信证券', count:2, amount:15000000, date:'2026-08-03', note:'' },
+        { id:'o2', channel:'中金财富', count:1, amount:8000000,  date:'2026-08-03', note:'' },
+        { id:'o3', channel:'中信建投', count:1, amount:6000000,  date:'2026-08-05', note:'' },
+        { id:'o4', channel:'嘉实财富', count:1, amount:3000000,  date:'2026-08-04', note:'' },
+        { id:'o5', channel:'银河证券', count:1, amount:4000000,  date:'2026-08-06', note:'' },
+        { id:'o6', channel:'华泰证券', count:1, amount:7000000,  date:'2026-08-05', note:'' },
+        { id:'o7', channel:'国金证券', count:1, amount:2000000,  date:'2026-08-07', note:'' },
+        { id:'o8', channel:'广发证券', count:1, amount:5000000,  date:'2026-08-06', note:'' },
+        { id:'o9', channel:'中银国际', count:1, amount:3500000,  date:'2026-08-07', note:'' },
+        { id:'o10', channel:'华夏财富', count:1, amount:9000000,  date:'2026-08-08', note:'' },
+        { id:'o11', channel:'平安证券', count:1, amount:4500000,  date:'2026-08-08', note:'' },
+        { id:'o12', channel:'东方财富', count:1, amount:5500000,  date:'2026-08-09', note:'' },
+        { id:'o13', channel:'五矿证券', count:1, amount:6500000,  date:'2026-08-09', note:'' },
+        { id:'o14', channel:'西南证券', count:1, amount:2500000,  date:'2026-08-10', note:'' },
+        { id:'o15', channel:'浙商证券', count:1, amount:3800000,  date:'2026-08-10', note:'' },
+        { id:'o16', channel:'西部证券', count:1, amount:4200000,  date:'2026-08-11', note:'' }
+      ]
+    },
+    {
+      id: 'prod_2',
+      name: '中信建投龙腾鑫享582号',
+      type: '2年期自动敲出',
+      monthlyRate: '1.05%',
+      desc: '月度或有派息率1.05%，敲出价阶梯下调，安全垫充足',
+      underlying: '中证500指数', term: '2年',
+      raisePeriod: '预计7月28日-7月30日',
+      knockoutLevel: '103%（每月降敲0.3%，最低至95%）',
+      knockinLevel: '70%', knockinObs: '仅到期观察一次',
+      dividendLine: '75%', holdingPeriod: '2～24个月',
+      mgmtFee: '绝对1.2%（代销费绝对0.8%）',
+      minAmount: '500万起，专业投资者',
+      orders: [
+        { id:'o21', channel:'中信建投', count:2, amount:13000000, date:'2026-07-28', note:'' },
+        { id:'o22', channel:'华泰证券', count:1, amount:6000000,  date:'2026-07-29', note:'' },
+        { id:'o23', channel:'银河证券', count:1, amount:4000000,  date:'2026-07-30', note:'' },
+        { id:'o24', channel:'中金财富', count:1, amount:3000000,  date:'2026-07-30', note:'' },
+        { id:'o25', channel:'中信证券', count:1, amount:2000000,  date:'2026-07-31', note:'' }
+      ]
+    }
+  ];
+}
+
+function initData() {
+  const localData = loadLocalData();
+  if (localData !== null) {
+    products = localData.map(migrateProduct);
+  } else {
+    loadSeedData();
+  }
+  // 时间戳：本地有数据但无时间戳（旧版本升级）→ 视为本地最新
+  const savedTs = parseInt(localStorage.getItem(TS_KEY) || '0', 10);
+  _localTs = localData !== null && !savedTs ? Date.now() : savedTs;
+  renderAll();
+  // 云端同步：检查凭证 → 启动时协调一次 + 定时轮询 + 切回标签页时刷新
+  if (checkCloudReady()) {
+    cloudReconcile();
+    setInterval(cloudReconcile, CLOUD.pollMs);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) cloudReconcile();
+    });
+  }
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+
+function renderAll() {
+  renderStats();
+  renderProductList();
+  updateHeader();
+  populateOrderProductSelect();
+  saveData();
+}
+
+function renderStats() {
+  const total = products.length;
+  const orders = getTotalOrders();
+  const amount = getTotalAmount();
+  const channels = getActiveChannels();
+  const avg = orders > 0 ? Math.round(amount / orders / 10000) : 0;
+  document.getElementById('sTotal').textContent = total;
+  document.getElementById('sOrders').textContent = orders;
+  document.getElementById('sAmount').textContent = shortAmount(amount);
+  document.getElementById('sChannels').textContent = channels + '/' + CHANNELS.length;
+  document.getElementById('sAvg').textContent = avg;
+}
+
+function renderProductList() {
+  const container = document.getElementById('productList');
+  const keyword = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+  let list = products;
+  if (keyword) {
+    list = products.filter(p => p.name.toLowerCase().includes(keyword));
+  }
+  list = [...list].sort((a, b) => {
+    const aVal = parseRaiseDate(a.raisePeriod);
+    const bVal = parseRaiseDate(b.raisePeriod);
+    return aVal - bVal;
+  });
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state fade-in">
+        <div class="icon">📭</div>
+        <p>${keyword ? '未找到匹配的产品' : '暂无产品，请点击上方「新增产品」开始添加'}</p>
+        ${!keyword ? '<button class="btn btn-primary" onclick="openProductModal()">➕ 新增第一个产品</button>' : ''}
+      </div>`;
+    return;
+  }
+  container.innerHTML = list.map((p, idx) => renderProductCard(p, idx)).join('');
+}
+
+/** 从募集期文本解析排序日期值，如 "预计8月6日-8月7日" → 806 */
+function parseRaiseDate(str) {
+  if (!str) return 9999;
+  const m = str.match(/(\d{1,2})月(\d{1,2})日/);
+  if (m) return parseInt(m[1]) * 100 + parseInt(m[2]);
+  return 9999;
+}
+
+function renderProductCard(p, idx) {
+  const orders = p.orders || [];
+  const totalCnt = orders.reduce((s,o) => s + (o.count||0), 0);
+  const totalAmt = orders.reduce((s,o) => s + (o.amount||0), 0);
+  const channelMap = getChannelMap(p);
+  const channelEntries = Object.entries(channelMap);
+
+  const cardId = 'card_' + p.id;
+
+  return `
+  <div class="product-card" id="${cardId}" onclick="toggleCard('${cardId}')">
+    <div class="product-card-header">
+      <div class="left">
+        <div class="name">${p.name} <span class="num">#${idx+1}</span></div>
+        <div class="tags">
+          <span class="tag tag-fire">${p.type ? p.type.split(' ')[0] || p.type : '—'}</span>
+          <span class="tag tag-blue">📈 ${p.underlying || '—'}</span>
+          <span class="tag tag-green">📅 ${p.term || '—'}</span>
+          <span class="tag tag-yellow" style="font-weight:600">💰 ${p.monthlyRate || '—'}</span>
+          <span class="tag tag-rose" style="font-weight:700" title="敲入线（安全垫）">🛡 敲入线 ${p.knockinLevel || '—'}</span>
+          <span class="tag tag-purple">📆 ${p.raisePeriod || '—'}</span>
+        </div>
+      </div>
+      <div class="right">
+        <div class="order-summary">
+          <span title="报单总数（笔）">📋 ${totalCnt}笔</span>
+          <span class="amt" title="报单总金额">💰 ${shortAmount(totalAmt)}</span>
+        </div>
+        <button class="btn btn-sm btn-accent" onclick="event.stopPropagation();openOrderModal('${p.id}')" title="直接修改该产品的报单总数">✏️ 修改报单</button>
+        <button class="btn-icon danger" onclick="event.stopPropagation();deleteProduct('${p.id}')" title="删除此产品">🗑️</button>
+        <span class="arrow">▼</span>
+      </div>
+    </div>
+    <div class="product-detail">
+      <div class="detail-grid">
+        ${renderDetailItem('产品类型', p.type || '—', true)}
+        ${renderDetailItem('挂钩标的', p.underlying || '—')}
+        ${renderDetailItem('报价', p.monthlyRate || '—', true)}
+        ${renderDetailItem('产品期限', p.term || '—')}
+        ${renderDetailItem('募集期', p.raisePeriod || '—')}
+        ${renderDetailItem('持有期限', p.holdingPeriod || '—')}
+        ${renderDetailItem('敲出界限', p.knockoutLevel || '—')}
+        ${renderDetailItem('敲入线', p.knockinLevel || '—', false, true)}
+        ${renderDetailItem('敲入观察', p.knockinObs || '—')}
+        ${renderDetailItem('派息线', p.dividendLine || '—')}
+        <div class="detail-item hidden"><div class="lbl">管理费</div><div class="val">${p.mgmtFee||'—'}</div></div>
+        <div class="detail-item hidden"><div class="lbl">产品起点</div><div class="val">${p.minAmount||'—'}</div></div>
+      </div>
+
+      ${p.desc ? `<div style="background:#fefce8;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:13px;color:#92400e">${p.desc}</div>` : ''}
+
+      <div class="section-title">📊 渠道报单统计 <span class="count">${totalCnt}笔 / ${shortAmount(totalAmt)}</span></div>
+      <div class="channel-summary-grid">
+        ${CHANNELS.map(ch => {
+          const data = channelMap[ch];
+          if (data) {
+            return `<div class="channel-summary-item" style="border-left:3px solid ${CHANNEL_COLORS[ch]||'#718096'}">
+              <div class="ch-name">${ch}</div>
+              <div class="ch-amt">${shortAmount(data.amount)}</div>
+              <div class="ch-cnt">${data.count}笔</div>
+            </div>`;
+          }
+          return `<div class="channel-summary-item ch-empty">
+            <div class="ch-name" style="color:var(--gray-400)">${ch}</div>
+            <div class="ch-cnt">—</div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="section-title" style="margin-top:16px">📋 渠道报单明细 <span class="count">${totalCnt}笔</span></div>
+      ${orders.length === 0 ? `
+        <div style="text-align:center;padding:24px;color:var(--gray-400);font-size:13px">暂无报单记录，请点击上方「修改报单」添加</div>
+      ` : `
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>渠道</th>
+            <th class="text-right">报单笔数</th>
+            <th class="text-right">报单金额</th>
+            <th class="text-right">平均单笔</th>
+            <th>报单日期</th>
+            <th>备注</th>
+            <th style="width:120px">操作</th>
+          </tr></thead>
+          <tbody>
+          ${orders.map(o => {
+            const color = CHANNEL_COLORS[o.channel] || '#718096';
+            const avg = (o.count||1) > 0 ? Math.round((o.amount||0) / (o.count||1) / 10000) : 0;
+            return `<tr>
+              <td><span style="color:${color};font-weight:600">${o.channel}</span></td>
+              <td class="text-right" style="font-weight:600">${o.count||0} 笔</td>
+              <td class="text-right" style="font-weight:600">${fmtAmount(o.amount)}</td>
+              <td class="text-right">${avg} 万</td>
+              <td>${o.date||'—'}</td>
+              <td style="color:var(--gray-400);max-width:120px;overflow:hidden;text-overflow:ellipsis">${o.note||'—'}</td>
+              <td>
+                <button class="btn-sm btn-outline" onclick="event.stopPropagation();openOrderModal('${p.id}','${o.channel}')" style="font-size:11px;padding:2px 8px;color:var(--info);border-color:var(--info)">修改</button>
+                <button class="btn-sm btn-outline-danger" onclick="event.stopPropagation();clearChannel('${p.id}','${o.channel}')" style="font-size:11px;padding:2px 8px">清零</button>
+              </td>
+            </tr>`;
+          }).join('')}
+          </tbody>
+        </table>
+      </div>`}
+    </div>
+  </div>`;
+}
+
+function renderDetailItem(label, value, highlight, knockin) {
+  return `<div class="detail-item">
+    <div class="lbl">${label}</div>
+    <div class="val ${knockin ? 'knockin' : (highlight ? 'highlight' : '')}">${value}</div>
+  </div>`;
+}
+
+function updateHeader() {
+  document.getElementById('headerProductCount').textContent = products.length + ' 个产品';
+  document.getElementById('productCount').textContent = products.length;
+  const now = new Date();
+  document.getElementById('headerDate').textContent = '📅 ' + now.toLocaleDateString('zh-CN');
+}
+
+// ============================================================
+// CARD TOGGLE / FILTER / DELETE
+// ============================================================
+
+function toggleCard(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  const wasExpanded = card.classList.contains('expanded');
+  document.querySelectorAll('.product-card.expanded').forEach(el => el.classList.remove('expanded'));
+  if (!wasExpanded) card.classList.add('expanded');
+}
+
+function filterProducts() {
+  renderProductList();
+  renderStats();
+}
+
+function deleteProduct(pid) {
+  const p = products.find(x => x.id === pid);
+  if (!p) return;
+  const orderCount = (p.orders || []).reduce((s,o) => s + (o.count||0), 0);
+  const msg = orderCount > 0
+    ? `确定要删除「${p.name}」吗？\n该产品下还有 ${orderCount} 笔报单将一同删除！`
+    : `确定要删除「${p.name}」吗？`;
+  if (!confirm(msg)) return;
+  products = products.filter(x => x.id !== pid);
+  renderAll();
+  toast(`🗑️ 已删除「${p.name}」`);
+}
+
+/** 清空某渠道报单（相当于把该渠道笔数/金额改为0） */
+function clearChannel(pid, channel) {
+  const p = products.find(x => x.id === pid);
+  if (!p) return;
+  const o = p.orders.find(x => x.channel === channel);
+  if (!o) return;
+  if (!confirm(`确定要清空「${p.name}」在 ${channel} 的报单吗？（${o.count||0}笔 / ${fmtAmount(o.amount)}）`)) return;
+  p.orders = p.orders.filter(x => x.channel !== channel);
+  renderAll();
+  toast(`🗑️ 已清空 ${channel} 的报单`);
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+
+function exportDataJSON() {
+  const payload = {
+    meta: { name: '龙腾鑫享数据导出', exportedAt: new Date().toISOString(), productCount: products.length },
+    products: products
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `龙腾鑫享数据_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('📥 数据已导出为 JSON 文件');
+}
+
+function importDataJSON() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        const data = JSON.parse(ev.target.result);
+        let arr = Array.isArray(data) ? data : (data.products || null);
+        if (!arr || !Array.isArray(arr) || arr.length === 0) {
+          toast('文件格式不正确，请导入有效的 JSON 数据', 'error');
+          return;
+        }
+        if (!confirm(`将导入 ${arr.length} 个产品，是否覆盖当前所有数据？`)) return;
+        products = arr.map(migrateProduct);
+        renderAll();
+        toast(`✅ 已导入 ${products.length} 个产品，共 ${getTotalOrders()} 笔报单`);
+      } catch(e) {
+        toast('JSON 解析失败，请检查文件格式', 'error');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ============================================================
+// SMART PARSE: 粘贴产品文字一键解析
+// ============================================================
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (el && val) el.value = val;
+}
+
+function parseProductText() {
+  const text = document.getElementById('parseInput').value.trim();
+  if (!text) { toast('请先粘贴产品介绍文字', 'error'); return; }
+
+  ['fName','fType','fMonthlyRate','fDesc','fUnderlying','fTerm',
+   'fRaisePeriod','fHoldingPeriod','fKnockoutLevel','fKnockinLevel',
+   'fKnockinObs','fDividendLine','fMgmtFee','fMinAmount'
+  ].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+
+  const lines = text.split('\n');
+
+  // 1) 产品全称
+  for (const line of lines) {
+    const m = line.match(/[【\[](.{0,20}?龙腾鑫享[^】\]]{0,20})[】\]]/);
+    if (m) { setVal('fName', m[1].trim()); break; }
+  }
+  if (!document.getElementById('fName').value) {
+    const m = text.match(/(龙腾鑫享\d{2,4}[号版期券]?)/);
+    if (m) setVal('fName', m[1].trim());
+  }
+
+  // 2) 产品类型（🔥行第一个逗号前）
+  const fireLine = lines.find(l => l.includes('🔥'));
+  if (fireLine) {
+    const raw = fireLine.replace(/🔥\s*/, '').trim();
+    const idx = raw.search(/[，,]/);
+    const typeVal = idx >= 0 ? raw.slice(0, idx).trim() : raw;
+    if (typeVal) setVal('fType', typeVal);
+  }
+
+  function extractFromLine(line, key) {
+    // 注意：模板字符串中必须写 \\] 才能生成正则里的 \]，否则 ] 会被当作字面量
+    const re = new RegExp(`[【\\[]\\s*${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*[】\\]][：:.]?\\s*([^【🎈\\n\\r]+)`);
+    const m = line.match(re);
+    return m ? m[1].trim() : null;
+  }
+
+  const FIELD_RULES = [
+    { id: 'fUnderlying',     keys: ['挂钩标的','挂钩标','标的指数','挂钩指数','标的'] },
+    { id: 'fMonthlyRate',    keys: ['月度或有派息率','或有派息率','月派息率','派息率'] },
+    { id: 'fTerm',           keys: ['产品期限','期限'] },
+    { id: 'fRaisePeriod',    keys: ['募集期','募集时间','募集日期','募集期间','认购期','募集日'] },
+    { id: 'fHoldingPeriod',  keys: ['持有期限','持有期','存续期','投资期限'] },
+    { id: 'fKnockoutLevel',  keys: ['敲出界限','敲出水平','敲出价','敲出线','敲出'] },
+    { id: 'fKnockinLevel',   keys: ['敲入线','敲入价','敲入水平','敲入'] },
+    { id: 'fDividendLine',   keys: ['派息线','派息价','分红线','派息'] },
+    { id: 'fMgmtFee',        keys: ['费用计算','管理费','费用'] },
+    { id: 'fMinAmount',      keys: ['产品起点','起投金额','起购金额','起点金额','认购起点'] }
+  ];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    for (const rule of FIELD_RULES) {
+      const el = document.getElementById(rule.id);
+      if (el && el.value) continue;
+      for (const key of rule.keys) {
+        const val = extractFromLine(trimmed, key);
+        if (val) {
+          let clean = val.replace(/[，,、\s]+$/, '');
+          if (rule.id === 'fKnockinLevel') {
+            const pct = clean.match(/(\d+\.?\d*%)/);
+            if (pct) clean = pct[1];
+            else clean = clean.replace(/[，,].*$/, '').trim();
+          }
+          setVal(rule.id, clean);
+          break;
+        }
+      }
+    }
+  }
+
+  // 4) 报价特殊提取
+  if (!document.getElementById('fMonthlyRate').value) {
+    const priceMatch = text.match(/敲入[，,]\s*([^（(]+?)[（(]\s*已锁价/);
+    if (priceMatch) {
+      let priceText = priceMatch[1].trim();
+      const pct = priceText.match(/(\d+\.?\d*%)/);
+      if (pct) setVal('fMonthlyRate', pct[1]);
+      else if (priceText.length < 30) setVal('fMonthlyRate', priceText);
+    }
+  }
+
+  // 5) 敲出界限补充
+  if (!document.getElementById('fKnockoutLevel').value && fireLine) {
+    const ko = fireLine.match(/敲出价[为格]?\s*(\d+\.?\d*%)/);
+    if (ko) setVal('fKnockoutLevel', ko[1]);
+  }
+
+  // 6) 敲入观察方式
+  const knockinLine = lines.find(l => l.includes('敲入线') || l.includes('敲入'));
+  if (knockinLine) {
+    let obs = '';
+    const m1 = knockinLine.match(/[，,]\s*(仅[^，,\n]{1,20}观察[^，,\n]{0,10})/);
+    if (m1) obs = m1[1].trim();
+    if (!obs) {
+      const after = knockinLine.replace(/^.*?敲入[线价]?[^，,]*[，,]\s*/, '').trim();
+      if (after && after.length < 25 && !after.includes('【')) obs = after;
+    }
+    if (obs) setVal('fKnockinObs', obs);
+  }
+
+  // 7) 产品简介
+  let desc = '';
+  if (fireLine) {
+    const raw = fireLine.replace(/🔥\s*/, '').trim();
+    const idx = raw.search(/[，,]/);
+    if (idx >= 0) {
+      desc = raw.slice(idx + 1).trim();
+    }
+  }
+  const paren = text.match(/[（\(](已锁价[^）\)]*)[）\)]/);
+  if (paren) {
+    desc = desc ? desc + '（' + paren[1].trim() + '）' : paren[1].trim();
+  }
+  if (desc) setVal('fDesc', desc);
+
+  toast('✅ 解析完成，请确认下方字段后提交');
+}
+
+// ============================================================
+// PRODUCT MODAL
+// ============================================================
+
+function openProductModal() {
+  ['fName','fType','fMonthlyRate','fDesc','fUnderlying','fTerm',
+   'fRaisePeriod','fHoldingPeriod','fKnockoutLevel','fKnockinLevel',
+   'fKnockinObs','fDividendLine','fMgmtFee','fMinAmount','parseInput'
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('productModal').classList.add('show');
+}
+
+function closeProductModal() {
+  document.getElementById('productModal').classList.remove('show');
+}
+
+function saveProduct() {
+  const get = id => document.getElementById(id).value.trim();
+
+  const name = get('fName');
+  if (!name) { toast('请输入产品全称', 'error'); return; }
+
+  const p = {
+    id: 'prod_' + Date.now() + Math.random().toString(36).slice(2,6),
+    name,
+    type: get('fType'),
+    monthlyRate: get('fMonthlyRate'),
+    desc: get('fDesc'),
+    underlying: get('fUnderlying'),
+    term: get('fTerm'),
+    raisePeriod: get('fRaisePeriod'),
+    knockoutLevel: get('fKnockoutLevel'),
+    knockinLevel: get('fKnockinLevel'),
+    knockinObs: get('fKnockinObs'),
+    dividendLine: get('fDividendLine'),
+    holdingPeriod: get('fHoldingPeriod'),
+    mgmtFee: get('fMgmtFee'),
+    minAmount: get('fMinAmount'),
+    orders: []
+  };
+
+  products.push(p);
+  closeProductModal();
+  renderAll();
+  toast(`✅ 已成功添加「${p.name}」`);
+}
+
+// ============================================================
+// ORDER MODAL：直接在原数值上修改报单总数
+// ============================================================
+
+function populateOrderProductSelect() {
+  const sel = document.getElementById('orderProductSelect');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">-- 请选择 --</option>'
+    + products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  if (current && products.some(p => p.id === current)) sel.value = current;
+}
+
+function openOrderModal(preSelectId, highlightChannel) {
+  if (products.length === 0) {
+    toast('请先添加产品再修改报单', 'error');
+    return;
+  }
+  populateOrderProductSelect();
+  document.getElementById('orderModal')._hlChannel = highlightChannel || '';
+  if (preSelectId && products.some(p => p.id === preSelectId)) {
+    document.getElementById('orderProductSelect').value = preSelectId;
+  }
+  document.getElementById('orderDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('orderNote').value = '';
+  renderOrderEditGrid();
+  document.getElementById('orderModal').classList.add('show');
+  updateOrderTotal();
+}
+
+function closeOrderModal() {
+  document.getElementById('orderModal').classList.remove('show');
+}
+
+function onOrderProductChange() {
+  renderOrderEditGrid();
+  updateOrderTotal();
+}
+
+function getSelectedProduct() {
+  const pid = document.getElementById('orderProductSelect').value;
+  return products.find(x => x.id === pid) || null;
+}
+
+/** 渲染渠道编辑网格：预填当前数值，直接修改即为新总数 */
+function renderOrderEditGrid() {
+  const p = getSelectedProduct();
+  const container = document.getElementById('orderEditGrid');
+  const hl = document.getElementById('orderModal')._hlChannel || '';
+  if (!p) {
+    container.innerHTML = '<div style="color:var(--gray-400);font-size:13px;padding:20px 0">请先选择产品</div>';
+    document.getElementById('orderModifyHint').textContent = '';
+    return;
+  }
+  const map = getChannelMap(p);
+  container.innerHTML = CHANNELS.map((ch, i) => {
+    const color = CHANNEL_COLORS[ch] || '#718096';
+    const cur = map[ch];
+    const hasData = !!cur;
+    return `<div class="order-edit-item ${hasData ? 'has-data' : ''} ${ch === hl ? 'hl' : ''}" data-channel="${ch}">
+      <div class="oe-name" style="color:${color}" title="${ch}">${ch}</div>
+      <div class="oe-field oe-cnt">
+        <label>笔数</label>
+        <input type="number" id="cnt_${i}" min="0" step="1" value="${cur ? cur.count : ''}"
+               placeholder="0" oninput="updateOrderTotal()" title="${ch} 报单笔数">
+      </div>
+      <div class="oe-field oe-amt">
+        <label>金额</label>
+        <input type="number" id="amt_${i}" min="0" step="0.01" value="${cur ? (cur.amount/10000).toFixed(2) : ''}"
+               placeholder="0" oninput="updateOrderTotal()" title="${ch} 报单金额（万元）">
+      </div>
+      <div class="oe-unit">万元</div>
+      <button class="oe-remove" onclick="event.preventDefault();clearChannelField('${ch}')" title="清空该渠道">✕</button>
+    </div>`;
+  }).join('');
+  document.getElementById('orderModifyHint').textContent = p.orders.length > 0
+    ? `当前「${p.name}」已有 ${p.orders.length} 个渠道报单，修改后整体替换`
+    : `「${p.name}」暂无报单，填写后即为新增`;
+}
+
+/** 清空某个渠道的两个输入框 */
+function clearChannelField(channel) {
+  document.querySelectorAll('.order-edit-item').forEach(item => {
+    if (item.dataset.channel === channel) {
+      item.querySelectorAll('input').forEach(inp => inp.value = '');
+    }
+  });
+  updateOrderTotal();
+}
+
+function updateOrderTotal() {
+  let cnt = 0, amt = 0;
+  document.querySelectorAll('.order-edit-item').forEach(item => {
+    const c = parseInt(item.querySelector('.oe-cnt input').value) || 0;
+    const a = parseFloat(item.querySelector('.oe-amt input').value) || 0;
+    item.classList.toggle('has-data', c > 0 || a > 0);
+    cnt += c;
+    amt += a;
+  });
+  document.getElementById('orderTotalCnt').textContent = cnt;
+  document.getElementById('orderTotalAmt').textContent = amt.toFixed(2).replace(/\.00$/,'');
+}
+
+function saveOrders() {
+  const p = getSelectedProduct();
+  if (!p) { toast('请选择产品', 'error'); return; }
+
+  const date = document.getElementById('orderDate').value;
+  const note = document.getElementById('orderNote').value.trim();
+
+  const newOrders = [];
+  document.querySelectorAll('.order-edit-item').forEach(item => {
+    const channel = item.dataset.channel;
+    let c = parseInt(item.querySelector('.oe-cnt input').value) || 0;
+    let a = Math.round((parseFloat(item.querySelector('.oe-amt input').value) || 0) * 10000);
+    if (c <= 0 && a <= 0) return;          // 全空 → 无报单
+    if (c <= 0 && a > 0) { toast(`${channel}：有金额但笔数为0，已自动按1笔处理`); c = 1; } // 有金额但无笔数 → 至少1笔
+    newOrders.push({
+      id: 'CH' + Date.now() + Math.random().toString(36).slice(2,6),
+      channel, count: c, amount: a, date, note
+    });
+  });
+
+  if (newOrders.length === 0) {
+    if (!confirm(`「${p.name}」所有渠道报单都将被清空，确定吗？`)) return;
+  }
+
+  const totalCnt = newOrders.reduce((s,o) => s + o.count, 0);
+  const totalAmt = newOrders.reduce((s,o) => s + o.amount, 0);
+
+  p.orders = newOrders;
+  closeOrderModal();
+  renderAll();
+  toast(`✅ 已更新「${p.name}」报单：${totalCnt}笔 / ${shortAmount(totalAmt)}`);
+}
+
+// ============================================================
+// 生成产品列表（对比矩阵：产品为列、属性为行，参考图片格式）
+// ============================================================
+
+/** 从募集期文本解析首日/尾日，如 "预计8月6日-8月7日" → {start:'8月6日', end:'8月7日'} */
+function parseRaiseDays(p) {
+  const s = p.raisePeriod || '';
+  const m1 = s.match(/(\d{1,2})月(\d{1,2})日/);
+  const m2 = s.match(/[-–~至](\d{1,2})月(\d{1,2})日/);
+  return {
+    start: m1 ? `${m1[1]}月${m1[2]}日` : null,
+    end: m2 ? `${m2[1]}月${m2[2]}日` : null
+  };
+}
+
+/** 从敲出界限文本解析 首次敲出线/降敲幅度/末次敲出线，如 "101%（0.5%降敲至85%，最后一次敲出价为68%）" */
+function parseKnockout(p) {
+  const s = p.knockoutLevel || '';
+  const firstM = s.match(/(\d+\.?\d*)%/);
+  let last = null, step = null;
+  let m = s.match(/(?:最后一次敲出价|末次|最低)[^0-9]*(\d+\.?\d*)%/);
+  if (m) last = m[1] + '%';
+  // 降敲幅度：数值在"降敲"前（0.5%降敲）或后（每月降敲0.3%）；间隔只允许少量非数字、非括号字符
+  m = s.match(/(\d+\.?\d*)%(?:[^0-9（）()]{0,4})?降敲|降敲[^0-9]*(\d+\.?\d*)%/);
+  if (m) step = (m[1] || m[2]) + '%';
+  return { first: firstM ? firstM[1] + '%' : null, last, step };
+}
+
+/** 矩阵行定义：标签 + 取值方式 */
+const MATRIX_ROWS = [
+  { key: 'type',          label: '产品结构' },
+  { key: 'raiseStart',    label: '募集首日' },
+  { key: 'raiseEnd',      label: '募集尾日' },
+  { key: 'underlying',    label: '挂钩标的' },
+  { key: 'term',          label: '雪球期限' },
+  { key: 'holdingPeriod', label: '持有期限' },
+  { key: 'koFirst',       label: '首次敲出线' },
+  { key: 'koStep',        label: '降敲幅度' },
+  { key: 'koLast',        label: '末次敲出线' },
+  { key: 'knockinLevel',  label: '敲入线', cls: 'knockin-row' },
+  { key: 'knockinObs',    label: '敲入观察' },
+  { key: 'dividendLine',  label: '派息线' },
+  { key: 'monthlyRate',   label: '敲出/红利票息(费税后)' },
+  { key: 'orderCount',    label: '报单笔数' },
+  { key: 'orderAmount',   label: '报单金额' },
+  { key: 'minAmount',     label: '产品起点' }
+];
+
+function matrixValue(p, key) {
+  switch (key) {
+    case 'raiseStart': case 'raiseEnd': {
+      const d = parseRaiseDays(p);
+      return key === 'raiseStart' ? (d.start || '—') : (d.end || '—');
+    }
+    case 'koFirst': case 'koStep': case 'koLast': {
+      const k = parseKnockout(p);
+      return k[key === 'koFirst' ? 'first' : (key === 'koStep' ? 'step' : 'last')] || '—';
+    }
+    case 'orderCount': return (p.orders||[]).reduce((s,o) => s + (o.count||0), 0);
+    case 'orderAmount': return shortAmount((p.orders||[]).reduce((s,o) => s + (o.amount||0), 0));
+    default: return p[key] || '—';
+  }
+}
+
+/** 按募集时间先后排序的产品列表 */
+function sortedProducts() {
+  return [...products].sort((a,b) => parseRaiseDate(a.raisePeriod) - parseRaiseDate(b.raisePeriod));
+}
+
+function openListModal() {
+  const wrap = document.getElementById('listTableWrap');
+  const list = sortedProducts();
+  document.getElementById('listCount').textContent = list.length;
+  if (list.length === 0) {
+    wrap.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray-400)">暂无产品</div>';
+    document.getElementById('listModal').classList.add('show');
+    return;
+  }
+
+  const nameCells = list.map(p => `<th class="prod-col">${p.name}</th>`).join('');
+  const bodyRows = MATRIX_ROWS.map(r => {
+    const tds = list.map(p => `<td class="${r.cls||''}">${matrixValue(p, r.key)}</td>`).join('');
+    return `<tr><th class="row-label">${r.label}</th>${tds}</tr>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="list-caption">龙腾鑫享系列产品一览（按募集时间先后排序）<span>${new Date().toLocaleDateString('zh-CN')}</span></div>
+    <table>
+      <thead><tr><th class="corner">产品名称</th>${nameCells}</tr></thead>
+      <tbody>${bodyRows}</tbody>
+    </table>`;
+
+  document.getElementById('listModal').classList.add('show');
+}
+
+function closeListModal() {
+  document.getElementById('listModal').classList.remove('show');
+}
+
+/** 矩阵数据 → CSV/TSV（首行=产品名称，后续行=属性） */
+function buildMatrixCSV(sep) {
+  const list = sortedProducts();
+  const head = ['产品名称', ...list.map(p => p.name)].join(sep);
+  const rows = MATRIX_ROWS.map(r =>
+    [r.label, ...list.map(p => String(matrixValue(p, r.key)).replace(/[\t\n,]/g, ' '))].join(sep)
+  );
+  return [head, ...rows].join('\n');
+}
+
+function copyListCSV() {
+  const text = buildMatrixCSV('\t');
+  const done = () => toast('📋 表格已复制，可直接粘贴到 Excel / 微信');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); done(); } catch(e) { toast('复制失败，请手动选择', 'error'); }
+  document.body.removeChild(ta);
+}
+
+function exportListCSV() {
+  const text = '\ufeff' + buildMatrixCSV(',');
+  const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `龙腾鑫享产品列表_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('📥 产品列表已导出为 CSV 文件');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+initData();
+</script>
+</body>
+</html>
