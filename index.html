@@ -721,6 +721,9 @@ function cloudPayload() {
 async function pushToCloud() {
   if (!CLOUD.enabled) return false;
   try {
+    // ⚠️ 防覆盖：推送前先检查云端是否已有更新数据（时间戳更新）→ 有则不推，先采纳云端
+    const newer = await cloudIsNewer();
+    if (newer) { await cloudReconcile(); return false; }
     const res = await fetch(CLOUD.gistUrl(), {
       method: 'PATCH',
       headers: CLOUD.headers(),
@@ -743,6 +746,34 @@ async function pushToCloud() {
   return false;
 }
 
+/** 云端是否已有比本地更新的数据（时间戳比较） */
+async function cloudIsNewer() {
+  try {
+    const res = await fetch(CLOUD.gistUrl(), { headers: CLOUD.headers() });
+    if (!res.ok) return false;
+    const d = await res.json();
+    const file = d.files && d.files[CLOUD.fileName];
+    if (!file || !file.content) return false;
+    const payload = JSON.parse(file.content);
+    const cloudTs = (payload && payload.meta && payload.meta.updatedAt) || 0;
+    return cloudTs > _localTs;
+  } catch(e) { return false; }
+}
+
+/** 采纳云端数据前，把本地数据备份到 localStorage（最多保留 5 份，防误覆盖丢失） */
+function backupLocalData() {
+  try {
+    const local = localStorage.getItem(STORAGE_KEY);
+    if (!local) return;
+    let backups = [];
+    try { backups = JSON.parse(localStorage.getItem('ltxx_backups') || '[]'); } catch(e) {}
+    if (!Array.isArray(backups)) backups = [];
+    backups.push({ ts: Date.now(), data: JSON.parse(local) });
+    while (backups.length > 5) backups.shift();
+    localStorage.setItem('ltxx_backups', JSON.stringify(backups));
+  } catch(e) {}
+}
+
 /** 云端 → 本地 双向协调（时间戳较新者胜） */
 async function cloudReconcile() {
   if (!CLOUD.enabled) return;
@@ -763,7 +794,8 @@ async function cloudReconcile() {
     const cloudProducts = payload && Array.isArray(payload.products) ? payload.products : null;
     if (!cloudProducts) { await pushToCloud(); return; }
     if (cloudTs > _localTs) {
-      // 云端更新 → 采纳云端数据
+      // 云端更新 → 采纳云端数据（先备份本地，防误覆盖丢失）
+      backupLocalData();
       products = cloudProducts.map(migrateProduct);
       _localTs = cloudTs;
       localStorage.setItem(TS_KEY, String(_localTs));
