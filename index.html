@@ -789,12 +789,13 @@ async function cloudReconcile() {
     }
     const d = await res.json();
     const file = d.files && d.files[CLOUD.fileName];
-    if (!file || !file.content) { await pushToCloud(); return; }   // 云端无数据 → 推送本地
+    // 云端无数据：种子状态（ts=0）不主动推，避免演示数据占位；有真实本地数据才推
+    if (!file || !file.content) { if (_localTs > 0) await pushToCloud(); return; }
     let payload = null;
     try { payload = JSON.parse(file.content); } catch(e) { return; }
     const cloudTs = (payload && payload.meta && payload.meta.updatedAt) || 0;
     const cloudProducts = payload && Array.isArray(payload.products) ? payload.products : null;
-    if (!cloudProducts) { await pushToCloud(); return; }
+    if (!cloudProducts) { if (_localTs > 0) await pushToCloud(); return; }
     if (cloudTs > _localTs) {
       // 云端更新 → 采纳云端数据（先备份本地，防误覆盖丢失）
       backupLocalData();
@@ -840,7 +841,8 @@ function saveData() {
   try {
     const json = JSON.stringify(products);
     const prev = localStorage.getItem(STORAGE_KEY);
-    if (json !== prev) _localTs = Date.now();   // 内容有变化才更新时间戳
+    // 内容有变化且不是种子数据（真实编辑）才更新时间戳；种子状态保持 0（云端优先）
+    if (json !== prev && json !== _seedJson) _localTs = Date.now();
     localStorage.setItem(STORAGE_KEY, json);
     localStorage.setItem(TS_KEY, String(_localTs));
     setSaveStatus('💾 本地已保存', '#38a169');
@@ -941,16 +943,29 @@ function loadSeedData() {
   ];
 }
 
+let _seedJson = null;   // 内置种子数据指纹（用于识别"从未编辑"状态）
+
 function initData() {
   const localData = loadLocalData();
-  if (localData !== null) {
-    products = localData.map(migrateProduct);
-  } else {
+  // 计算种子指纹：本地数据与内置种子完全一致 → 视为从未编辑（云端优先，防止演示数据覆盖云端）
+  if (_seedJson === null) {
+    const saved = products;
     loadSeedData();
+    _seedJson = JSON.stringify(products);
+    products = saved;
   }
-  // 时间戳：本地有数据但无时间戳（旧版本升级）→ 视为本地最新
-  const savedTs = parseInt(localStorage.getItem(TS_KEY) || '0', 10);
-  _localTs = localData !== null && !savedTs ? Date.now() : savedTs;
+  const isSeed = localData !== null && JSON.stringify(localData) === _seedJson;
+
+  if (localData !== null && !isSeed) {
+    // 有真实本地数据（用户编辑过）→ 使用本地时间戳
+    products = localData.map(migrateProduct);
+    const savedTs = parseInt(localStorage.getItem(TS_KEY) || '0', 10);
+    _localTs = savedTs || Date.now();
+  } else {
+    // 无数据 或 本地只是种子 → 种子数据 + 时间戳 0（云端优先）
+    loadSeedData();
+    _localTs = 0;
+  }
   renderAll();
   // 云端同步：检查凭证 → 启动时协调一次 + 定时轮询 + 切回标签页时刷新
   if (checkCloudReady()) {
