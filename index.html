@@ -1161,6 +1161,7 @@ function renderProductCard(p, idx) {
           ? `<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();openScaleModal('${p.id}')" title="录入/查看实际成立规模">📦 ${scaleTotal > 0 ? '查看规模' : '录入规模'}</button>`
           : `<button class="btn btn-sm btn-accent" onclick="event.stopPropagation();openOrderModal('${p.id}')" title="直接修改该产品的报单金额">✏️ 修改报单</button>
              <button class="btn-sm btn-outline" style="font-size:11px;padding:5px 10px;color:#718096;border-color:#cbd5e0" onclick="event.stopPropagation();closeOrder('${p.id}')" title="报单结束后录入实际成立规模">🏁 报单结束</button>`}
+        <button class="btn-sm btn-outline" style="font-size:11px;padding:5px 8px;color:#e53e3e;border-color:#feb2b2" onclick="event.stopPropagation();deleteProduct('${p.id}')" title="删除此产品（含报单/规模数据）">🗑️</button>
         <span class="arrow">▼</span>
       </div>
     </div>
@@ -1272,6 +1273,24 @@ function toggleCard(cardId) {
 function filterProducts() {
   renderProductList();
   renderStats();
+}
+
+/** 删除产品（含该产品的报单与成立规模数据） */
+function deleteProduct(pid) {
+  const p = products.find(x => x.id === pid);
+  if (!p) return;
+  const orderCount = (p.orders || []).length;
+  const hasScale = p.scale && p.scale.total > 0;
+  const parts = [];
+  if (orderCount > 0) parts.push(`${orderCount} 条报单记录`);
+  if (hasScale) parts.push('已录入的成立规模');
+  const msg = parts.length > 0
+    ? `确定要删除「${p.name}」吗？\n该产品下的${parts.join('、')}将一同删除！`
+    : `确定要删除「${p.name}」吗？`;
+  if (!confirm(msg)) return;
+  products = products.filter(x => x.id !== pid);
+  renderAll();
+  toast(`🗑️ 已删除产品「${p.name}」`);
 }
 
 /** 报单结束：关闭报单录入，进入录入实际成立规模 */
