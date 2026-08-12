@@ -257,6 +257,26 @@ tbody tr:last-child td{border-bottom:none}
 .login-box .btn{width:100%;justify-content:center;padding:11px;font-size:14px}
 .login-box .lg-tip{text-align:center;font-size:11px;color:var(--gray-400);margin-top:16px}
 
+/* ============ 报单结束 / 成立规模 ============ */
+.tag-closed{background:#e6fffa;color:#234e52}
+.scale-banner{background:linear-gradient(135deg,#e6fffa,#b2f5ea);border:1px solid #81e6d9;border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:#234e52;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.scale-banner b{font-size:15px}
+.scale-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.scale-row .total-box{background:#f0fff4;border:1px solid #c6f6d5;border-radius:var(--radius-sm);padding:10px 16px;flex:1;min-width:200px}
+.scale-row .total-box label{font-size:11px;color:var(--gray-500);display:block;margin-bottom:4px}
+.scale-row .total-box input{width:100%;padding:8px 10px;border:1px solid var(--gray-200);border-radius:8px;font-size:15px;font-weight:600;color:var(--success);font-family:inherit}
+.scale-source-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.scale-actions{margin-top:16px;display:flex;justify-content:flex-end;gap:10px}
+.scale-channel-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--gray-100);border-radius:8px;background:var(--gray-50)}
+.scale-channel-item .sc-name{width:110px;font-size:12px;font-weight:600;flex-shrink:0}
+.scale-channel-item input{flex:1;padding:6px 8px;border:1px solid var(--gray-200);border-radius:6px;font-size:13px;font-family:inherit;min-width:80px}
+.scale-channel-item .sc-unit{font-size:11px;color:var(--gray-400);width:18px}
+.scale-channel-item.sc-filled{border-color:#c6f6d5;background:#f0fff4}
+.scale-channel-item.sc-zero{border-color:var(--gray-100);opacity:.55}
+.scale-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:380px;overflow-y:auto;padding-right:4px}
+.scale-auto-tip{font-size:11px;color:var(--gray-400);margin-top:4px}
+@media(max-width:720px){.scale-grid{grid-template-columns:1fr}}
+
 /* ============ Responsive ============ */
 @media(max-width:1024px){.main{padding:20px}.header{padding:0 20px}.toolbar{padding:12px 20px}}
 @media(max-width:640px){
@@ -398,6 +418,43 @@ tbody tr:last-child td{border-bottom:none}
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeAccountModal()">关闭</button>
       <button class="btn btn-primary" onclick="addAccount()">➕ 新增账号</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: 成立规模录入 ============ -->
+<div class="modal-overlay" id="scaleModal">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <h2 id="scaleModalTitle">📦 录入实际成立规模</h2>
+      <button class="close" onclick="closeScaleModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- 产品信息（只读） -->
+      <div class="detail-grid" id="scaleProductInfo" style="background:var(--gray-50);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:14px"></div>
+      <!-- 数据来源 -->
+      <div class="scale-source-btns">
+        <button class="btn btn-sm btn-primary" id="btnScaleMail" onclick="readScaleFromMail()" style="display:none">📬 从邮箱读取</button>
+        <button class="btn btn-sm btn-outline" onclick="document.getElementById('scaleFileInput').click()">📤 上传Excel</button>
+        <span class="scale-auto-tip" id="scaleAutoTip">支持上传「基金成立汇总表」Excel 自动识别各渠道份额</span>
+        <input type="file" id="scaleFileInput" accept=".xlsx,.xls" style="display:none" onchange="parseScaleExcelFile(this)">
+      </div>
+      <div class="scale-row">
+        <div class="total-box">
+          <label>📊 实际成立规模 · 总份额（份）</label>
+          <input type="number" id="scaleTotal" min="0" step="0.01" placeholder="0" oninput="scaleTotalChanged()">
+        </div>
+        <div class="total-box" style="flex:0 0 200px">
+          <label>📅 确认日期</label>
+          <input type="text" id="scaleConfirmDate" placeholder="2026-08-12">
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--gray-500);margin-bottom:8px">各渠道确认份额（份）— 自动识别后可直接修改</div>
+      <div class="scale-grid" id="scaleChannelGrid"><!-- JS 动态渲染 --></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeScaleModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveScale()">💾 保存成立规模</button>
     </div>
   </div>
 </div>
@@ -1033,18 +1090,21 @@ function parseRaiseDate(str) {
 
 function renderProductCard(p, idx) {
   const orders = p.orders || [];
-  const totalCnt = orders.reduce((s,o) => s + (o.count||0), 0);
   const totalAmt = orders.reduce((s,o) => s + (o.amount||0), 0);
   const channelMap = getChannelMap(p);
-  const channelEntries = Object.entries(channelMap);
+  const isClosed = p.status === 'closed';
+  const scale = p.scale || null;
+  const scaleTotal = scale ? (scale.total || 0) : 0;
 
   const cardId = 'card_' + p.id;
 
   return `
-  <div class="product-card" id="${cardId}" onclick="toggleCard('${cardId}')">
+  <div class="product-card ${isClosed ? 'closed' : ''}" id="${cardId}" onclick="toggleCard('${cardId}')">
     <div class="product-card-header">
       <div class="left">
-        <div class="name">${p.name} <span class="num">#${idx+1}</span></div>
+        <div class="name">${p.name} <span class="num">#${idx+1}</span>
+          ${isClosed ? `<span class="tag tag-closed" style="font-size:11px">✅ 报单结束</span>` : `<span class="tag tag-blue" style="font-size:11px">📥 收单中</span>`}
+        </div>
         <div class="tags">
           <span class="tag tag-fire">${p.type ? p.type.split(' ')[0] || p.type : '—'}</span>
           <span class="tag tag-blue">📈 ${p.underlying || '—'}</span>
@@ -1056,14 +1116,23 @@ function renderProductCard(p, idx) {
       </div>
       <div class="right">
         <div class="order-summary">
-          <span class="amt" title="报单总金额">💰 ${shortAmount(totalAmt)}</span>
+          ${isClosed && scaleTotal > 0
+            ? `<span class="amt" title="实际成立规模" style="background:#e6fffa;color:#234e52">📦 ${fmtShares(scaleTotal)}</span>`
+            : `<span class="amt" title="报单总金额">💰 ${shortAmount(totalAmt)}</span>`}
         </div>
-        <button class="btn btn-sm btn-accent" onclick="event.stopPropagation();openOrderModal('${p.id}')" title="直接修改该产品的报单金额">✏️ 修改报单</button>
-        <button class="btn-icon danger" onclick="event.stopPropagation();deleteProduct('${p.id}')" title="删除此产品">🗑️</button>
+        ${isClosed
+          ? `<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();openScaleModal('${p.id}')" title="录入/查看实际成立规模">📦 ${scaleTotal > 0 ? '查看规模' : '录入规模'}</button>`
+          : `<button class="btn btn-sm btn-accent" onclick="event.stopPropagation();openOrderModal('${p.id}')" title="直接修改该产品的报单金额">✏️ 修改报单</button>
+             <button class="btn-sm btn-outline" style="font-size:11px;padding:5px 10px;color:#718096;border-color:#cbd5e0" onclick="event.stopPropagation();closeOrder('${p.id}')" title="报单结束后录入实际成立规模">🏁 报单结束</button>`}
         <span class="arrow">▼</span>
       </div>
     </div>
     <div class="product-detail">
+      ${isClosed && scaleTotal > 0 ? `
+      <div class="scale-banner">
+        <span>✅ 报单已结束 · 实际成立规模 <b>${fmtShares(scaleTotal)}</b>${scale.confirmDate ? `（确认日 ${scale.confirmDate}）` : ''}</span>
+        <button class="btn btn-sm btn-outline" style="color:#234e52;border-color:#81e6d9" onclick="event.stopPropagation();openScaleModal('${p.id}')">📦 查看/修改</button>
+      </div>` : ''}
       <div class="detail-grid">
         ${renderDetailItem('产品类型', p.type || '—', true)}
         ${renderDetailItem('挂钩标的', p.underlying || '—')}
@@ -1081,6 +1150,7 @@ function renderProductCard(p, idx) {
 
       ${p.desc ? `<div style="background:#fefce8;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:13px;color:#92400e">${p.desc}</div>` : ''}
 
+      ${isClosed ? renderScaleChannels(p, scale) : `
       <div class="section-title">📊 渠道报单统计 <span class="count">${shortAmount(totalAmt)}</span></div>
       <div class="channel-summary-grid">
         ${CHANNELS.map(ch => {
@@ -1128,6 +1198,7 @@ function renderProductCard(p, idx) {
           </tbody>
         </table>
       </div>`}
+      `}
     </div>
   </div>`;
 }
@@ -1163,20 +1234,19 @@ function filterProducts() {
   renderStats();
 }
 
-function deleteProduct(pid) {
+/** 报单结束：关闭报单录入，进入录入实际成立规模 */
+function closeOrder(pid) {
   const p = products.find(x => x.id === pid);
   if (!p) return;
-  const hasOrders = (p.orders || []).length > 0;
-  const msg = hasOrders
-    ? `确定要删除「${p.name}」吗？\n该产品下的报单数据将一同删除！`
-    : `确定要删除「${p.name}」吗？`;
-  if (!confirm(msg)) return;
-  products = products.filter(x => x.id !== pid);
+  if (!confirm(`确认将「${p.name}」报单结束吗？\n结束后不可再修改报单，需录入产品实际成立规模。`)) return;
+  p.status = 'closed';
+  p.closedAt = Date.now();
   renderAll();
-  toast(`🗑️ 已删除「${p.name}」`);
+  toast(`🏁 「${p.name}」报单已结束`);
+  openScaleModal(p.id);   // 引导录入实际成立规模
 }
 
-/** 清空某渠道报单（相当于把该渠道笔数/金额改为0） */
+/** 清空某渠道报单（相当于把该渠道金额改为0） */
 function clearChannel(pid, channel) {
   const p = products.find(x => x.id === pid);
   if (!p) return;
@@ -1432,6 +1502,14 @@ function openOrderModal(preSelectId, highlightChannel) {
   if (products.length === 0) {
     toast('请先添加产品再修改报单', 'error');
     return;
+  }
+  // 报单已结束的产品不可再修改报单
+  if (preSelectId) {
+    const pp = products.find(p => p.id === preSelectId);
+    if (pp && pp.status === 'closed') {
+      toast(`「${pp.name}」报单已结束，请通过「📦 录入规模」维护实际成立规模`, 'error');
+      return;
+    }
   }
   populateOrderProductSelect();
   document.getElementById('orderModal')._hlChannel = highlightChannel || '';
@@ -1844,6 +1922,302 @@ async function deleteAccount(u) {
   } else {
     toast('保存到云端失败，请检查网络', 'error');
   }
+}
+
+// ============================================================
+// 成立规模录入（报单结束后）
+// ============================================================
+
+const SCALE_BRIDGE = 'http://127.0.0.1:8711';
+let _scaleProductId = null;   // 当前录入规模的产品
+let _scaleMailReady = false;  // 本地邮箱桥接是否在线
+
+/** 份额格式化：141000000 → 1.41亿份 */
+function fmtShares(n) {
+  n = Number(n) || 0;
+  if (n >= 100000000) return (n/100000000).toFixed(2).replace(/\.?0+$/, '') + '亿份';
+  if (n >= 10000) return (n/10000).toFixed(0) + '万份';
+  return n.toLocaleString() + '份';
+}
+
+/** Excel 销售商名 → 页面渠道名（子串匹配 + 中信专户归并） */
+function mapChannelName(excelName) {
+  if (!excelName) return null;
+  const n = String(excelName).trim().replace(/[（(].*?[）)]/g, '');
+  if (!n || /合计|户数|制表/.test(n)) return null;
+  for (const ch of CHANNELS) { if (n === ch) return ch; }
+  for (const ch of CHANNELS) { if (n.includes(ch) || ch.includes(n)) return ch; }
+  if (/中信/.test(n)) return '中信证券';
+  if (/招商/.test(n)) return '招商证券';
+  return n;   // 未知渠道保留原名
+}
+
+/** 打开成立规模录入弹窗 */
+function openScaleModal(pid) {
+  const p = products.find(x => x.id === pid);
+  if (!p) return;
+  _scaleProductId = pid;
+  // 产品信息只读展示
+  const info = document.getElementById('scaleProductInfo');
+  info.innerHTML = [
+    ['产品名称', p.name, true],
+    ['产品类型', p.type || '—'],
+    ['挂钩标的', p.underlying || '—'],
+    ['产品期限', p.term || '—'],
+    ['募集期', p.raisePeriod || '—'],
+    ['敲入线', p.knockinLevel || '—']
+  ].map(([l, v, h]) => `<div class="detail-item"><div class="lbl">${l}</div><div class="val ${h ? 'highlight' : ''}">${v}</div></div>`).join('');
+  document.getElementById('scaleModalTitle').textContent = `📦 录入实际成立规模 — ${p.name}`;
+  // 已录入则回填
+  const s = p.scale || {};
+  document.getElementById('scaleTotal').value = s.total ? (s.total/1).toString() : '';
+  document.getElementById('scaleConfirmDate').value = s.confirmDate || '';
+  renderScaleGrid(p);
+  checkScaleBridge();
+  document.getElementById('scaleModal').classList.add('show');
+}
+function closeScaleModal() {
+  document.getElementById('scaleModal').classList.remove('show');
+  _scaleProductId = null;
+}
+function getScaleProduct() {
+  return products.find(x => x.id === _scaleProductId);
+}
+
+/** 弹窗渠道份额网格（自动映射 Excel 数据） */
+function renderScaleGrid(p, excelData) {
+  const s = p.scale || {};
+  const cur = s.channels || {};
+  const grid = document.getElementById('scaleChannelGrid');
+  grid.innerHTML = CHANNELS.map((ch, i) => {
+    const val = excelData && excelData[ch] !== undefined ? excelData[ch] : (cur[ch] || '');
+    const has = Number(val) > 0;
+    return `<div class="scale-channel-item ${has ? 'sc-filled' : 'sc-zero'}" data-channel="${ch}">
+      <span class="sc-name" style="color:${CHANNEL_COLORS[ch]||'#718096'}">${ch}</span>
+      <input type="number" min="0" step="0.01" value="${val !== '' ? val : ''}" placeholder="0"
+             oninput="scaleChannelInput(this)" data-channel="${ch}">
+      <span class="sc-unit">份</span>
+    </div>`;
+  }).join('');
+  // 自动计算总份额（若未手动改）
+  autoCalcScaleTotal();
+}
+function scaleChannelInput(el) {
+  const v = parseFloat(el.value) || 0;
+  el.closest('.scale-channel-item').classList.toggle('sc-filled', v > 0);
+  autoCalcScaleTotal();
+}
+function scaleTotalChanged() {
+  // 手动改总份额时不做自动计算（避免覆盖）
+  document.getElementById('scaleTotal').dataset.manual = '1';
+}
+function autoCalcScaleTotal() {
+  const manual = document.getElementById('scaleTotal').dataset.manual;
+  if (manual === '1') return;
+  let sum = 0;
+  document.querySelectorAll('#scaleChannelGrid input').forEach(inp => {
+    sum += parseFloat(inp.value) || 0;
+  });
+  const el = document.getElementById('scaleTotal');
+  if (sum > 0) el.value = sum.toFixed(2).replace(/\.?0+$/, '');
+}
+function resetScaleManual() {
+  delete document.getElementById('scaleTotal').dataset.manual;
+}
+
+/** 卡片详情：已结束产品的各渠道份额展示 */
+function renderScaleChannels(p, scale) {
+  const s = scale || {};
+  const chs = s.channels || {};
+  const filled = CHANNELS.filter(ch => Number(chs[ch]) > 0);
+  if (filled.length === 0) {
+    return `<div class="section-title">📦 实际成立规模 <span class="count" style="color:var(--gray-400)">未录入</span></div>
+      <div style="text-align:center;padding:16px;color:var(--gray-400);font-size:13px">报单已结束，点击右上角「📦 录入规模」录入产品实际成立规模</div>`;
+  }
+  return `<div class="section-title">📦 实际成立规模 · 各渠道份额 <span class="count">${fmtShares(s.total||0)}</span></div>
+    <div class="channel-summary-grid">
+      ${filled.map(ch => `<div class="channel-summary-item" style="border-left:3px solid ${CHANNEL_COLORS[ch]||'#718096'}">
+        <div class="ch-name">${ch}</div>
+        <div class="ch-amt">${fmtShares(chs[ch])}</div>
+      </div>`).join('')}
+    </div>`;
+}
+
+// ------------------------------------------------------------
+// Excel 解析（二维数组 → {total, confirmDate, channels}）
+// 表头结构：销售商 | 确认金额[个/机/合] | 确认份额[个/机/合] | 利息转份额[个/机/合]
+// ------------------------------------------------------------
+function parseScaleRows(rows) {
+  let meta = { fund: '', confirmDate: '', total: 0 };
+  const channels = {};
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i] || [];
+    // 基金名称 / 确认日期
+    for (let j = 0; j < row.length; j++) {
+      const c = row[j];
+      if (typeof c === 'string' && c.includes('基金名称') && row[j+1] != null && !meta.fund) meta.fund = String(row[j+1]).trim();
+      if (typeof c === 'string' && c.includes('确认日期') && row[j+1] != null && !meta.confirmDate) meta.confirmDate = String(row[j+1]).trim();
+    }
+    // 表头行：含「销售商」
+    if (!row.some(c => typeof c === 'string' && c.includes('销售商'))) continue;
+    const headerIdx = i;
+    const hrow = rows[headerIdx];
+    const nameCol = hrow.findIndex(c => typeof c === 'string' && c.includes('销售商'));
+    const shareCol = hrow.findIndex(c => typeof c === 'string' && c.includes('确认份额'));
+    if (shareCol < 0) continue;
+    // 子表头：确认份额组内的「合计」列
+    const sub = rows[headerIdx + 1] || [];
+    let totalCol = shareCol + 2;
+    for (let off = 0; off < 3; off++) {
+      const j = shareCol + off;
+      if (typeof sub[j] === 'string' && sub[j].trim() === '合计') { totalCol = j; break; }
+    }
+    // 数据行
+    for (let r = headerIdx + 2; r < rows.length; r++) {
+      const drow = rows[r] || [];
+      const name = drow[nameCol] == null ? null : String(drow[nameCol]).trim();
+      if (!name || /合计|户数|制表/.test(name)) {
+        if (name && name.includes('合计')) meta.total = numOr0(drow[totalCol]);
+        continue;
+      }
+      const total = numOr0(drow[totalCol]);
+      if (total > 0) {
+        const mapped = mapChannelName(name);
+        if (mapped) channels[mapped] = (channels[mapped] || 0) + total;   // 同渠道累加（如中信证券多个专户）
+      }
+    }
+    break;   // 只处理第一个含销售商的表头
+  }
+  if (!meta.total) meta.total = Object.values(channels).reduce((s, v) => s + v, 0);
+  return { ...meta, channels };
+}
+function numOr0(v) {
+  if (v == null || v === '') return 0;
+  const n = parseFloat(String(v).replace(/[,，\s]/g, ''));
+  return isNaN(n) ? 0 : n;
+}
+
+/** 上传 Excel 文件解析 */
+function parseScaleExcelFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  loadSheetJS().then(() => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+        const parsed = parseScaleRows(rows);
+        applyScaleParsed(parsed);
+      } catch(err) {
+        toast('Excel 解析失败：' + err.message, 'error');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+  input.value = '';
+}
+
+/** SheetJS 动态加载（jsdelivr CDN） */
+let _sheetjsPromise = null;
+function loadSheetJS() {
+  if (window.XLSX) return Promise.resolve();
+  if (_sheetjsPromise) return _sheetjsPromise;
+  _sheetjsPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    s.onload = resolve;
+    s.onerror = () => { _sheetjsPromise = null; toast('Excel 解析库加载失败（网络受限），请改用「从邮箱读取」或手动输入', 'error'); reject(new Error('CDN fail')); };
+    document.head.appendChild(s);
+  });
+  return _sheetjsPromise;
+}
+
+/** 应用解析结果到弹窗 */
+function applyScaleParsed(parsed) {
+  const p = getScaleProduct();
+  if (!p) return;
+  const m = p.name.match(/龙腾鑫享\s*(\d+)\s*号/);
+  const kw = m ? m[1] : '';
+  if (parsed.fund && kw && !parsed.fund.includes(kw)) {
+    toast(`⚠️ 注意：该Excel属于「${parsed.fund}」，与当前产品「${p.name}」可能不匹配`, 'error');
+  }
+  document.getElementById('scaleTotal').value = parsed.total ? parsed.total.toString() : '';
+  document.getElementById('scaleConfirmDate').value = parsed.confirmDate || '';
+  resetScaleManual();
+  renderScaleGrid(p, parsed.channels);
+  const filled = Object.keys(parsed.channels).length;
+  toast(`✅ 已识别 ${filled} 个渠道份额，请核对后保存`);
+}
+
+// ------------------------------------------------------------
+// 本地邮箱桥接（Python 服务 127.0.0.1:8711）
+// ------------------------------------------------------------
+function checkScaleBridge() {
+  const btn = document.getElementById('btnScaleMail');
+  if (btn && btn.style.display === '') return;   // 已显示
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 1500);
+  fetch(SCALE_BRIDGE + '/health', { signal: ctrl.signal })
+    .then(r => r.ok ? r.json() : null)
+    .then(d => { if (d && d.ok) { _scaleMailReady = true; btn.style.display = ''; } })
+    .catch(() => { _scaleMailReady = false; })
+    .finally(() => clearTimeout(t));
+}
+
+async function readScaleFromMail() {
+  const p = getScaleProduct();
+  if (!p) return;
+  const m = p.name.match(/龙腾鑫享\s*(\d+)\s*号/);
+  const kw = m ? m[1] : p.name;
+  const btn = document.getElementById('btnScaleMail');
+  const orig = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '📬 读取中...';
+  try {
+    const res = await fetch(`${SCALE_BRIDGE}/scale?kw=${encodeURIComponent(kw)}`);
+    const d = await res.json();
+    if (!d.ok) { toast('读取失败：' + (d.error || '未找到该产品的基金成立汇总表'), 'error'); return; }
+    // 桥接返回 channels 数组 → 转为 {渠道名: 份额} 对象（渠道名自动映射，同渠道累加）
+    const chanMap = {};
+    (d.channels || []).forEach(c => {
+      const mapped = mapChannelName(c.name);
+      if (mapped) chanMap[mapped] = (chanMap[mapped] || 0) + c.total;
+    });
+    document.getElementById('scaleTotal').value = d.total ? d.total.toString() : '';
+    document.getElementById('scaleConfirmDate').value = d.confirmDate || '';
+    resetScaleManual();
+    renderScaleGrid(p, chanMap);
+    toast(`✅ 已从邮箱读取「${d.fund}」汇总表，识别 ${Object.keys(chanMap).length} 个渠道份额`);
+  } catch(e) {
+    toast('无法连接本地邮箱桥接服务，请先启动 scale_bridge.py', 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = orig;
+  }
+}
+
+/** 保存成立规模 */
+function saveScale() {
+  const p = getScaleProduct();
+  if (!p) return;
+  const channels = {};
+  document.querySelectorAll('#scaleChannelGrid input').forEach(inp => {
+    const v = parseFloat(inp.value) || 0;
+    if (v > 0) channels[inp.dataset.channel] = Math.round(v * 100) / 100;
+  });
+  let total = parseFloat(document.getElementById('scaleTotal').value) || 0;
+  if (!total) total = Object.values(channels).reduce((s, v) => s + v, 0);
+  if (!total) { toast('请填写总份额或至少一个渠道的份额', 'error'); return; }
+  p.scale = {
+    total: Math.round(total * 100) / 100,
+    confirmDate: document.getElementById('scaleConfirmDate').value.trim(),
+    channels,
+    updatedAt: Date.now()
+  };
+  p.status = 'closed';
+  closeScaleModal();
+  renderAll();
+  toast(`✅ 已保存「${p.name}」实际成立规模：${fmtShares(p.scale.total)}`);
 }
 
 // ============================================================
