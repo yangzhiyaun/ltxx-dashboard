@@ -259,6 +259,12 @@ tbody tr:last-child td{border-bottom:none}
 
 /* ============ 报单结束 / 成立规模 ============ */
 .tag-closed{background:#e6fffa;color:#234e52}
+.view-tabs{display:inline-flex;gap:6px;margin-left:14px}
+.view-tab{font-size:12px;padding:5px 14px;border-radius:16px;border:1px solid var(--gray-200);background:var(--gray-50);color:var(--gray-600);cursor:pointer;transition:var(--transition);font-family:inherit}
+.view-tab:hover{border-color:var(--primary-light);color:var(--primary)}
+.view-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}
+.closed-view-banner{background:linear-gradient(135deg,#e6fffa,#b2f5ea);border:1px solid #81e6d9;border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:#234e52;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.closed-view-banner b{font-size:15px}
 .scale-banner{background:linear-gradient(135deg,#e6fffa,#b2f5ea);border:1px solid #81e6d9;border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:#234e52;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px}
 .scale-banner b{font-size:15px}
 .scale-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
@@ -358,8 +364,12 @@ tbody tr:last-child td{border-bottom:none}
 <!-- ============ TOOLBAR ============ -->
 <div class="toolbar">
   <div class="toolbar-left">
-    <h1>📋 产品列表</h1>
+    <h1 id="viewTitle">📋 产品列表</h1>
     <span class="count" id="productCount">0</span>
+    <div class="view-tabs">
+      <button class="view-tab active" id="tabOpen" onclick="switchView('open')">📥 收单中</button>
+      <button class="view-tab" id="tabClosed" onclick="switchView('closed')">🏁 已结束 <span id="closedCount">0</span></button>
+    </div>
   </div>
   <div class="toolbar-right">
     <div class="search-box">
@@ -1038,6 +1048,16 @@ function initData() {
 // RENDER
 // ============================================================
 
+let _view = 'open';   // 视图：open=收单中（首页） / closed=已结束（单独界面）
+
+function switchView(v) {
+  _view = v;
+  document.getElementById('tabOpen').classList.toggle('active', v === 'open');
+  document.getElementById('tabClosed').classList.toggle('active', v === 'closed');
+  document.getElementById('viewTitle').textContent = v === 'open' ? '📋 产品列表' : '🏁 已结束产品';
+  renderAll();
+}
+
 function renderAll() {
   renderStats();
   renderProductList();
@@ -1047,21 +1067,32 @@ function renderAll() {
 }
 
 function renderStats() {
-  const total = products.length;
-  const amount = getTotalAmount();
-  const channels = getActiveChannels();
+  const openList = products.filter(p => p.status !== 'closed');
+  const closedList = products.filter(p => p.status === 'closed');
   const el = id => document.getElementById(id);
-  if (el('sTotal')) el('sTotal').textContent = total;
-  if (el('sAmount')) el('sAmount').textContent = shortAmount(amount);
-  if (el('sChannels')) el('sChannels').textContent = channels + '/' + CHANNELS.length;
+  if (_view === 'open') {
+    const amount = openList.reduce((s,p) => s + p.orders.reduce((a,o) => a + (o.amount||0), 0), 0);
+    const channels = new Set(openList.flatMap(p => (p.orders||[]).map(o => o.channel))).size;
+    if (el('sTotal')) { el('sTotal').textContent = openList.length; el('sTotal').parentElement.querySelector('.sub').textContent = '收单中'; }
+    if (el('sAmount')) { el('sAmount').textContent = shortAmount(amount); el('sAmount').parentElement.querySelector('.lbl').textContent = '报单总金额'; el('sAmount').parentElement.querySelector('.sub').textContent = '累计'; }
+    if (el('sChannels')) el('sChannels').textContent = channels + '/' + CHANNELS.length;
+  } else {
+    const scaleTotal = closedList.reduce((s,p) => s + ((p.scale && p.scale.total) || 0), 0);
+    const channels = new Set(closedList.flatMap(p => Object.keys((p.scale && p.scale.channels) || {}))).size;
+    if (el('sTotal')) { el('sTotal').textContent = closedList.length; el('sTotal').parentElement.querySelector('.sub').textContent = '已结束'; }
+    if (el('sAmount')) { el('sAmount').textContent = fmtShares(scaleTotal); el('sAmount').parentElement.querySelector('.lbl').textContent = '成立总规模'; el('sAmount').parentElement.querySelector('.sub').textContent = '份'; }
+    if (el('sChannels')) el('sChannels').textContent = channels + '/' + CHANNELS.length;
+  }
+  const cc = document.getElementById('closedCount');
+  if (cc) cc.textContent = closedList.length;
 }
 
 function renderProductList() {
   const container = document.getElementById('productList');
   const keyword = (document.getElementById('searchInput').value || '').trim().toLowerCase();
-  let list = products;
+  let list = products.filter(p => (p.status === 'closed') === (_view === 'closed'));
   if (keyword) {
-    list = products.filter(p => p.name.toLowerCase().includes(keyword));
+    list = list.filter(p => p.name.toLowerCase().includes(keyword));
   }
   list = [...list].sort((a, b) => {
     const aVal = parseRaiseDate(a.raisePeriod);
@@ -1072,12 +1103,18 @@ function renderProductList() {
     container.innerHTML = `
       <div class="empty-state fade-in">
         <div class="icon">📭</div>
-        <p>${keyword ? '未找到匹配的产品' : '暂无产品，请点击上方「新增产品」开始添加'}</p>
-        ${!keyword ? '<button class="btn btn-primary" onclick="openProductModal()">➕ 新增第一个产品</button>' : ''}
+        <p>${keyword ? '未找到匹配的产品' : (_view === 'closed' ? '暂无已结束产品' : '暂无产品，请点击上方「新增产品」开始添加')}</p>
+        ${!keyword && _view === 'open' ? '<button class="btn btn-primary" onclick="openProductModal()">➕ 新增第一个产品</button>' : ''}
       </div>`;
     return;
   }
-  container.innerHTML = list.map((p, idx) => renderProductCard(p, idx)).join('');
+  const banner = _view === 'closed'
+    ? `<div class="closed-view-banner">
+        <span>🏁 已结束产品 <b>${list.length}</b> 个 — 点击「📦 查看规模」可查看/修改实际成立规模</span>
+        <button class="btn btn-sm btn-outline" style="color:#234e52;border-color:#81e6d9" onclick="switchView('open')">← 返回收单中</button>
+      </div>`
+    : '';
+  container.innerHTML = banner + list.map((p, i) => renderProductCard(p, i)).join('');
 }
 
 /** 从募集期文本解析排序日期值，如 "预计8月6日-8月7日" → 806 */
@@ -1211,8 +1248,11 @@ function renderDetailItem(label, value, highlight, knockin) {
 }
 
 function updateHeader() {
+  const openCount = products.filter(p => p.status !== 'closed').length;
   document.getElementById('headerProductCount').textContent = products.length + ' 个产品';
-  document.getElementById('productCount').textContent = products.length;
+  document.getElementById('productCount').textContent = _view === 'closed'
+    ? products.filter(p => p.status === 'closed').length
+    : openCount;
   const now = new Date();
   document.getElementById('headerDate').textContent = '📅 ' + now.toLocaleDateString('zh-CN');
 }
@@ -1242,7 +1282,7 @@ function closeOrder(pid) {
   p.status = 'closed';
   p.closedAt = Date.now();
   renderAll();
-  toast(`🏁 「${p.name}」报单已结束`);
+  toast(`🏁 「${p.name}」报单已结束，已移至「已结束」界面`);
   openScaleModal(p.id);   // 引导录入实际成立规模
 }
 
@@ -1493,14 +1533,17 @@ function saveProduct() {
 function populateOrderProductSelect() {
   const sel = document.getElementById('orderProductSelect');
   const current = sel.value;
+  // 只列收单中的产品（已结束产品不可再修改报单）
+  const openList = products.filter(p => p.status !== 'closed');
   sel.innerHTML = '<option value="">-- 请选择 --</option>'
-    + products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-  if (current && products.some(p => p.id === current)) sel.value = current;
+    + openList.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  if (current && openList.some(p => p.id === current)) sel.value = current;
 }
 
 function openOrderModal(preSelectId, highlightChannel) {
-  if (products.length === 0) {
-    toast('请先添加产品再修改报单', 'error');
+  const openList = products.filter(p => p.status !== 'closed');
+  if (openList.length === 0) {
+    toast('当前没有收单中的产品可修改报单', 'error');
     return;
   }
   // 报单已结束的产品不可再修改报单
