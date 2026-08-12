@@ -451,7 +451,7 @@ tbody tr:last-child td{border-bottom:none}
       </div>
       <div class="scale-row">
         <div class="total-box">
-          <label>📊 实际成立规模 · 总份额（份）</label>
+          <label>📊 实际成立规模 · 总份额（万份）</label>
           <input type="number" id="scaleTotal" min="0" step="0.01" placeholder="0" oninput="scaleTotalChanged()">
         </div>
         <div class="total-box" style="flex:0 0 200px">
@@ -459,7 +459,7 @@ tbody tr:last-child td{border-bottom:none}
           <input type="text" id="scaleConfirmDate" placeholder="2026-08-12">
         </div>
       </div>
-      <div style="font-size:12px;color:var(--gray-500);margin-bottom:8px">各渠道确认份额（份）— 自动识别后可直接修改</div>
+      <div style="font-size:12px;color:var(--gray-500);margin-bottom:8px">各渠道确认份额（万份）— 自动识别后可直接修改</div>
       <div class="scale-grid" id="scaleChannelGrid"><!-- JS 动态渲染 --></div>
     </div>
     <div class="modal-footer">
@@ -1080,7 +1080,7 @@ function renderStats() {
     const scaleTotal = closedList.reduce((s,p) => s + ((p.scale && p.scale.total) || 0), 0);
     const channels = new Set(closedList.flatMap(p => Object.keys((p.scale && p.scale.channels) || {}))).size;
     if (el('sTotal')) { el('sTotal').textContent = closedList.length; el('sTotal').parentElement.querySelector('.sub').textContent = '已结束'; }
-    if (el('sAmount')) { el('sAmount').textContent = fmtShares(scaleTotal); el('sAmount').parentElement.querySelector('.lbl').textContent = '成立总规模'; el('sAmount').parentElement.querySelector('.sub').textContent = '份'; }
+    if (el('sAmount')) { el('sAmount').textContent = fmtShares(scaleTotal); el('sAmount').parentElement.querySelector('.lbl').textContent = '成立总规模'; el('sAmount').parentElement.querySelector('.sub').textContent = '万份'; }
     if (el('sChannels')) el('sChannels').textContent = channels + '/' + CHANNELS.length;
   }
   const cc = document.getElementById('closedCount');
@@ -1975,12 +1975,11 @@ const SCALE_BRIDGE = 'http://127.0.0.1:8711';
 let _scaleProductId = null;   // 当前录入规模的产品
 let _scaleMailReady = false;  // 本地邮箱桥接是否在线
 
-/** 份额格式化：141000000 → 1.41亿份 */
+/** 份额格式化：输入单位=万份。14100万份 → 1.41亿份；1000万份 → 1,000万份 */
 function fmtShares(n) {
   n = Number(n) || 0;
-  if (n >= 100000000) return (n/100000000).toFixed(2).replace(/\.?0+$/, '') + '亿份';
-  if (n >= 10000) return (n/10000).toFixed(0) + '万份';
-  return n.toLocaleString() + '份';
+  if (n >= 10000) return (n/10000).toFixed(2).replace(/\.?0+$/, '') + '亿份';
+  return n.toLocaleString() + '万份';
 }
 
 /** Excel 销售商名 → 页面渠道名（子串匹配 + 中信专户归并） */
@@ -2039,7 +2038,7 @@ function renderScaleGrid(p, excelData) {
       <span class="sc-name" style="color:${CHANNEL_COLORS[ch]||'#718096'}">${ch}</span>
       <input type="number" min="0" step="0.01" value="${val !== '' ? val : ''}" placeholder="0"
              oninput="scaleChannelInput(this)" data-channel="${ch}">
-      <span class="sc-unit">份</span>
+      <span class="sc-unit">万份</span>
     </div>`;
   }).join('');
   // 自动计算总份额（若未手动改）
@@ -2108,6 +2107,9 @@ function parseScaleRows(rows) {
     const nameCol = hrow.findIndex(c => typeof c === 'string' && c.includes('销售商'));
     const shareCol = hrow.findIndex(c => typeof c === 'string' && c.includes('确认份额'));
     if (shareCol < 0) continue;
+    // 单位换算：表头为「确认份额」时单位是「份」，统一转为「万份」；表头已含「万份」则不转
+    const shareHeader = String(hrow[shareCol] || '');
+    const toWan = shareHeader.includes('万份') ? 1 : 10000;
     // 子表头：确认份额组内的「合计」列
     const sub = rows[headerIdx + 1] || [];
     let totalCol = shareCol + 2;
@@ -2120,10 +2122,10 @@ function parseScaleRows(rows) {
       const drow = rows[r] || [];
       const name = drow[nameCol] == null ? null : String(drow[nameCol]).trim();
       if (!name || /合计|户数|制表/.test(name)) {
-        if (name && name.includes('合计')) meta.total = numOr0(drow[totalCol]);
+        if (name && name.includes('合计')) meta.total = numOr0(drow[totalCol]) / toWan;
         continue;
       }
-      const total = numOr0(drow[totalCol]);
+      const total = numOr0(drow[totalCol]) / toWan;
       if (total > 0) {
         const mapped = mapChannelName(name);
         if (mapped) channels[mapped] = (channels[mapped] || 0) + total;   // 同渠道累加（如中信证券多个专户）
