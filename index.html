@@ -2156,13 +2156,26 @@ function applyScaleParsed(parsed) {
 // ------------------------------------------------------------
 function checkScaleBridge() {
   const btn = document.getElementById('btnScaleMail');
+  const tip = document.getElementById('scaleAutoTip');
   if (btn && btn.style.display === '') return;   // 已显示
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 1500);
+  const t = setTimeout(() => ctrl.abort(), 2000);
   fetch(SCALE_BRIDGE + '/health', { signal: ctrl.signal })
     .then(r => r.ok ? r.json() : null)
-    .then(d => { if (d && d.ok) { _scaleMailReady = true; btn.style.display = ''; } })
-    .catch(() => { _scaleMailReady = false; })
+    .then(d => {
+      if (d && d.ok) {
+        _scaleMailReady = true;
+        btn.style.display = '';
+        if (tip) tip.textContent = '已连接本地邮箱桥接，可自动读取「基金成立汇总表」';
+      } else {
+        _scaleMailReady = false;
+        if (tip) tip.textContent = '未检测到本地邮箱桥接服务：请双击「启动成立规模桥接.bat」后重试（或用上传Excel / 手动输入）';
+      }
+    })
+    .catch(() => {
+      _scaleMailReady = false;
+      if (tip) tip.textContent = '未检测到本地邮箱桥接服务：请双击「启动成立规模桥接.bat」后重试（或用上传Excel / 手动输入）';
+    })
     .finally(() => clearTimeout(t));
 }
 
