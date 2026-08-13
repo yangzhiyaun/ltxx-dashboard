@@ -95,6 +95,9 @@ def parse_summary(payload):
         share_col = next((j for j, c in enumerate(hrow) if isinstance(c, str) and "确认份额" in c), None)
         if share_col is None:
             continue
+        # 单位换算：表头为「确认份额」时单位是「份」，统一转为「万份」；表头已含「万份」则不转
+        share_header = str(hrow[share_col]) if hrow[share_col] is not None else ""
+        to_wan = 1.0 if "万份" in share_header else 10000.0
         sub = rows[header_idx + 1] if header_idx + 1 < len(rows) else ()
         total_col = None
         for off in range(3):
@@ -118,9 +121,9 @@ def parse_summary(payload):
             if total > 0:
                 channels.append({
                     "name": name,
-                    "personal": _num(row[pers_col]) if pers_col < len(row) else 0.0,
-                    "inst": _num(row[inst_col]) if inst_col < len(row) else 0.0,
-                    "total": total,
+                    "personal": (_num(row[pers_col]) if pers_col < len(row) else 0.0) / to_wan,
+                    "inst": (_num(row[inst_col]) if inst_col < len(row) else 0.0) / to_wan,
+                    "total": total / to_wan,
                 })
     return meta, channels
 
@@ -200,7 +203,8 @@ def find_mails(kw, max_scan=120):
                         continue
                     if kw and kw not in fn and kw not in subj:
                         continue
-                    hits.append({"uid": u, "subject": subj, "date": date, "attachment": fn, "payload": payload})
+                    hits.append({"uid": u, "subject": subj, "date": date, "attachment": fn, "payload": payload,
+                                 "fn_hit": bool(kw and kw in fn)})
             except Exception:
                 continue
         hits.sort(key=lambda h: h["uid"])
@@ -252,7 +256,9 @@ class Handler(BaseHTTPRequestHandler):
                 if not hits:
                     self._send({"ok": False, "error": f"未找到含「{kw}」的基金成立汇总表邮件"})
                     return
-                best = hits[-1]   # uid 最大 = 最新
+                # 优先选择附件名精确匹配 kw 的（同一邮件含多只基金附件时避免选错）
+                fn_hits = [h for h in hits if h.get("fn_hit")]
+                best = (fn_hits or hits)[-1]   # uid 最大 = 最新
                 meta, channels = parse_summary(best["payload"])
                 total = sum(c["total"] for c in channels)
                 self._send({"ok": True, "uid": best["uid"], "attachment": best["attachment"],

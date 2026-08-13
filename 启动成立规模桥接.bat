@@ -8,7 +8,19 @@ echo  请保持此窗口开启，关闭窗口即停止服务
 echo ============================================
 echo.
 cd /d "%~dp0"
-python scale_bridge.py
+
+REM 优先使用 hermes venv 的 python（已装 openpyxl）
+set "PYEXE=D:\Users\yangzy\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe"
+if not exist "%PYEXE%" set "PYEXE=python"
+
+REM 检查 openpyxl 依赖
+"%PYEXE%" -c "import openpyxl" >nul 2>&1
+if errorlevel 1 (
+    echo [依赖检查] 未检测到 openpyxl，正在安装...
+    "%PYEXE%" -m pip install openpyxl -i https://pypi.tuna.tsinghua.edu.cn/simple
+)
+
+"%PYEXE%" scale_bridge.py
 echo.
 echo 服务已停止。
 pause
