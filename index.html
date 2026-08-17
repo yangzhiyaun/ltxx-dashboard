@@ -2034,7 +2034,8 @@ function openScaleModal(pid) {
   document.getElementById('scaleTotal').value = s.total ? (s.total/1).toString() : '';
   document.getElementById('scaleConfirmDate').value = s.confirmDate || '';
   renderScaleGrid(p);
-  checkScaleBridge();
+  // 若尚未录入规模，桥接在线时自动从邮箱抓取（无需手动点「📬 从邮箱读取」）
+  checkScaleBridge(!s.total);
   document.getElementById('scaleModal').classList.add('show');
 }
 function closeScaleModal() {
@@ -2218,10 +2219,13 @@ function applyScaleParsed(parsed) {
 // ------------------------------------------------------------
 // 本地邮箱桥接（Python 服务 127.0.0.1:8711）
 // ------------------------------------------------------------
-function checkScaleBridge() {
+function checkScaleBridge(autoRead) {
   const btn = document.getElementById('btnScaleMail');
   const tip = document.getElementById('scaleAutoTip');
-  if (btn && btn.style.display === '') return;   // 已显示
+  if (btn && btn.style.display === '') {   // 已显示（桥接已连接）
+    if (autoRead) { readScaleFromMail(); }
+    return;
+  }
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 2000);
   fetch(SCALE_BRIDGE + '/health', { signal: ctrl.signal })
@@ -2231,6 +2235,7 @@ function checkScaleBridge() {
         _scaleMailReady = true;
         btn.style.display = '';
         if (tip) tip.textContent = '已连接本地邮箱桥接，可自动读取「基金成立汇总表」';
+        if (autoRead) { readScaleFromMail(); }   // 自动抓取
       } else {
         _scaleMailReady = false;
         if (tip) tip.textContent = '未检测到本地邮箱桥接服务：请双击「启动成立规模桥接.bat」后重试（或用上传Excel / 手动输入）';
