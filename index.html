@@ -513,43 +513,32 @@ tbody tr:last-child td{border-bottom:none}
     <div class="modal-body">
       <div class="xibao-wrap">
         <div class="xibao-form">
-          <div class="form-row">
-            <div class="form-group" style="flex:2">
-              <label>选择产品</label>
-              <select id="xbProduct" onchange="xbProductChanged()"></select>
-            </div>
+          <div class="form-group">
+            <label>产品介绍文字（粘贴后自动识别）</label>
+            <textarea id="xbText" rows="12" placeholder="粘贴产品介绍，例如：
+【华夏资本龙腾鑫享466号】
+
+🔥2年期中证1000结构，68%敲入，敲出及红利票息【13.00%/年】（已锁价，报价为税后、费后）
+🎈【挂钩标的】中证1000指数
+🎈【产品期限】2年
+🎈【募集期】预计4月7日-8日
+🎈【敲出界限】96%（0.5%降敲至85.5%）
+🎈【敲入线】68%，向下32%安全垫
+🎈【持有期限】3～24个月
+🎈【产品起点】1000万起" oninput="xbParseText()" style="width:100%;padding:10px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:inherit;line-height:1.7;box-sizing:border-box;resize:vertical;outline:none"></textarea>
           </div>
-          <div class="form-row" style="margin-top:12px">
-            <div class="form-group">
-              <label>产品名称</label>
-              <input type="text" id="xbName" readonly>
-            </div>
-            <div class="form-group">
-              <label>产品结构</label>
-              <input type="text" id="xbStruct" placeholder="如：欧式凤凰">
-            </div>
-          </div>
-          <div class="form-row" style="margin-top:12px">
-            <div class="form-group">
-              <label>挂钩标的</label>
-              <input type="text" id="xbUnderlying" placeholder="如：中证1000">
-            </div>
-            <div class="form-group">
-              <label>票息率（%/年）</label>
-              <input type="text" id="xbRate" placeholder="如：0.85%">
-            </div>
-          </div>
-          <div class="form-row" style="margin-top:12px">
+          <div style="font-size:11px;color:var(--gray-400);margin-top:6px;line-height:1.6">识别结果：产品号 <b id="xbTNo">—</b> · 结构 <b id="xbTStruct">—</b> · 挂钩 <b id="xbTUnder">—</b> · 票息 <b id="xbTRate">—</b></div>
+          <div class="form-row" style="margin-top:14px">
             <div class="form-group">
               <label>敲出日期</label>
               <input type="date" id="xbDate" onchange="xbDateChanged()">
             </div>
             <div class="form-group">
               <label>第几个月敲出</label>
-              <input type="number" id="xbMonth" min="1" step="1" placeholder="如：3">
+              <input type="number" id="xbMonth" min="1" step="1" placeholder="如：3" oninput="xbRender()">
             </div>
           </div>
-          <div style="font-size:11px;color:var(--gray-400);margin-top:10px;line-height:1.6">产品信息可自动带出并手动修改。敲出日期将自动计算第几个月（从募集尾日算起），也可手动填写。票息率显示为「票息 × 期数」。</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:10px;line-height:1.6">粘贴产品介绍文字后自动识别产品信息；选择敲出日期自动计算第几个月（也可手动填写）。票息率显示为「票息 × 期数」。</div>
           <div style="margin-top:16px;display:flex;gap:10px">
             <button class="btn btn-primary" onclick="xbGenImage()" style="flex:1">🖼️ 生成喜报图片</button>
             <button class="btn btn-outline" onclick="closeXibaoModal()">关闭</button>
@@ -562,14 +551,14 @@ tbody tr:last-child td{border-bottom:none}
             <div class="xb-title">喜报</div>
             <div class="xb-divider"></div>
             <div class="xb-name" id="xbPName">华夏资本龙腾鑫享XXX号</div>
-            <div class="xb-struct" id="xbPStruct">欧式凤凰结构 挂钩中证1000</div>
+            <div class="xb-struct" id="xbPStruct">中证1000结构 挂钩中证1000</div>
             <div class="xb-knock">
               <div class="lbl">第 <span id="xbPMonth">3</span> 个月 敲出</div>
               <div class="val">🎉 敲出</div>
             </div>
             <div class="xb-rate">
               <div class="lbl">累计派息</div>
-              <div class="val"><span id="xbPRate">0.85%</span> × <span id="xbPTimes">3</span></div>
+              <div class="val"><span id="xbPRate">13.00%</span> × <span id="xbPTimes">3</span></div>
             </div>
             <div class="xb-foot">
               <div class="src">数据来源：华夏资本</div>
@@ -2419,10 +2408,14 @@ function saveScale() {
 // 敲出喜报生成
 // ============================================================
 
+let _xb = { no: '', struct: '', under: '', rate: '' };   // 解析出的产品信息
+
 function openXibaoModal() {
-  const sel = document.getElementById('xbProduct');
-  sel.innerHTML = '<option value="">— 请选择产品 —</option>' + products.map(p =>
-    `<option value="${p.id}">${p.name}</option>`).join('');
+  document.getElementById('xbText').value = '';
+  document.getElementById('xbDate').value = '';
+  document.getElementById('xbMonth').value = '';
+  _xb = { no: '', struct: '', under: '', rate: '' };
+  xbRender();
   document.getElementById('xibaoModal').classList.add('show');
 }
 
@@ -2430,89 +2423,98 @@ function closeXibaoModal() {
   document.getElementById('xibaoModal').classList.remove('show');
 }
 
-/** 从产品名提取产品号：华夏资本龙腾鑫享578号 → 578 */
-function xbExtractNo(name) {
-  const m = String(name || '').match(/龙腾鑫享\s*(\d+)\s*号/);
-  return m ? m[1] : '';
+/** 从文字段中提取字段值：🎈【挂钩标的】中证1000指数 → 中证1000指数 */
+function xbField(text, key) {
+  const m = String(text || '').match(new RegExp('【' + key + '】\\s*([^\\n]+)'));
+  return m ? m[1].trim() : '';
 }
 
-/** 从产品 type 提取结构关键词：3年期欧式凤凰 → 欧式凤凰 */
-function xbExtractStruct(type) {
-  const t = String(type || '');
-  const m = t.match(/(欧式凤凰|美式凤凰|凤凰|早利|雪球|鲨鱼鳍|二元|价差)/);
-  return m ? m[1] : (t.replace(/^\d+\s*年\s*期?\s*/, '') || t);
-}
-
-/** 从挂钩标的中提取：中证1000指数 → 中证1000 */
-function xbExtractUnderlying(u) {
-  const s = String(u || '');
-  const m = s.match(/(中证|沪深|上证|深证|恒生|科创|创业板|国证)\s*\d*/);
-  return m ? m[0] : s;
-}
-
-/** 从票息率提取纯数字：0.85% → 0.85 */
-function xbExtractRate(r) {
-  const m = String(r || '').match(/(\d+(?:\.\d+)?)\s*%/);
-  return m ? m[1] + '%' : (String(r || '').trim() || '—');
-}
-
-/** 从募集期文本解析尾日：预计8月6日-8月7日 → 8月7日 */
-function xbParseRaiseEnd(raisePeriod) {
-  const s = String(raisePeriod || '');
-  const m = s.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*日\s*[-—~至到]\s*\d{1,2}\s*月\s*(\d{1,2})\s*日/);
-  if (m) return { month: +m[1], day: +m[3] };
-  const m2 = s.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*日/);
-  if (m2) return { month: +m2[1], day: +m2[2] };
-  return null;
-}
-
-function xbProductChanged() {
-  const id = document.getElementById('xbProduct').value;
-  const p = products.find(x => x.id === id);
-  if (!p) return;
-  document.getElementById('xbName').value = p.name || '';
-  document.getElementById('xbStruct').value = xbExtractStruct(p.type);
-  document.getElementById('xbUnderlying').value = xbExtractUnderlying(p.underlying);
-  document.getElementById('xbRate').value = xbExtractRate(p.monthlyRate);
+/** 解析粘贴的产品介绍文字段 */
+function xbParseText() {
+  const text = document.getElementById('xbText').value;
+  // 产品号：华夏资本龙腾鑫享466号 → 466
+  const noM = text.match(/龙腾鑫享\s*(\d+)\s*号/);
+  const no = noM ? noM[1] : '';
+  // 产品描述行（含🔥或⚡或第一段产品说明）
+  const descLines = text.split('\n').map(l => l.trim()).filter(l => l && !/^【/.test(l) && !/^🎈/.test(l));
+  const desc = descLines[0] || '';
+  // 结构：从描述行提取「中证1000结构」「欧式凤凰」等
+  let struct = '';
+  const structM = desc.match(/(\d+年)?\s*(中证\d+|沪深\d+|上证\d+|恒生\d*|科创\d*|创业板\d*)?\s*(结构|欧式凤凰|美式凤凰|凤凰|早利|雪球|鲨鱼鳍|二元|价差)/);
+  if (structM) {
+    struct = (structM[2] || '') + (structM[3] || '');
+  } else {
+    const stM = desc.match(/(欧式凤凰|美式凤凰|凤凰|早利|雪球|鲨鱼鳍|二元|价差)/);
+    struct = stM ? stM[1] : '';
+  }
+  // 挂钩标的
+  let under = xbField(text, '挂钩标的');
+  if (!under) {
+    const uM = desc.match(/(中证|沪深|上证|深证|恒生|科创|创业板|国证)\s*\d*/);
+    under = uM ? uM[0] : '';
+  }
+  // 票息率
+  let rate = '';
+  const rateM = text.match(/【(\d+(?:\.\d+)?)\s*%\s*\/?\s*年?】/);
+  if (rateM) rate = rateM[1] + '%';
+  if (!rate) {
+    const rateM2 = text.match(/(\d+(?:\.\d+)?)\s*%\s*\/?\s*年/);
+    rate = rateM2 ? rateM2[1] + '%' : '';
+  }
+  _xb = { no, struct, under, rate };
+  document.getElementById('xbTNo').textContent = no || '—';
+  document.getElementById('xbTStruct').textContent = struct || '—';
+  document.getElementById('xbTUnder').textContent = under || '—';
+  document.getElementById('xbTRate').textContent = rate || '—';
   xbRender();
+}
+
+/** 从募集期文本解析尾日：预计4月7日-8日 → 4月8日 */
+function xbParseRaiseEnd(text) {
+  const s = String(text || '');
+  // 预计4月7日-8日
+  let m = s.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*日?\s*[-—~至到]\s*(\d{1,2})\s*日?/);
+  if (m) return { month: +m[1], day: +m[3] };
+  // 预计4月7-8日
+  m = s.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*[-—~至到]\s*(\d{1,2})\s*日/);
+  if (m) return { month: +m[1], day: +m[3] };
+  // 4月7日
+  m = s.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*日/);
+  if (m) return { month: +m[1], day: +m[2] };
+  return null;
 }
 
 /** 敲出日期 → 自动计算第几个月（从募集尾日算起） */
 function xbDateChanged() {
   const dateVal = document.getElementById('xbDate').value;
-  const p = getXibaoProduct();
-  if (!dateVal || !p) return;
-  const end = xbParseRaiseEnd(p.raisePeriod);
-  if (!end) return;
+  const text = document.getElementById('xbText').value;
+  if (!dateVal) return;
+  const raise = xbField(text, '募集期') || (text.match(/募集期[^：:]*[：:]\s*([^\n]+)/) || [])[1] || '';
+  const end = xbParseRaiseEnd(raise);
   const d = new Date(dateVal + 'T00:00:00');
-  // 募集尾日所在的年份：用敲出日期的年份近似（跨年处理）
-  let base = new Date(d.getFullYear(), end.month - 1, end.day);
-  if (base > d) base = new Date(d.getFullYear() - 1, end.month - 1, end.day);
-  let months = (d.getFullYear() - base.getFullYear()) * 12 + (d.getMonth() - base.getMonth());
-  if (d.getDate() < base.getDate()) months -= 1;
-  if (months < 1) months = 1;
+  let months = 1;
+  if (end) {
+    let base = new Date(d.getFullYear(), end.month - 1, end.day);
+    if (base > d) base = new Date(d.getFullYear() - 1, end.month - 1, end.day);
+    months = (d.getFullYear() - base.getFullYear()) * 12 + (d.getMonth() - base.getMonth());
+    if (d.getDate() < base.getDate()) months -= 1;
+    if (months < 1) months = 1;
+  }
   document.getElementById('xbMonth').value = months;
   xbRender();
 }
 
-function getXibaoProduct() {
-  const id = document.getElementById('xbProduct').value;
-  return products.find(x => x.id === id);
-}
-
 /** 渲染喜报预览 */
 function xbRender() {
-  const p = getXibaoProduct();
-  const name = document.getElementById('xbName').value || (p ? p.name : '华夏资本龙腾鑫享XXX号');
-  // 产品名统一为「华夏资本龙腾鑫享XXX号」
-  const no = xbExtractNo(name) || (p ? xbExtractNo(p.name) : '');
-  const fullName = no ? `华夏资本龙腾鑫享${no}号` : name;
-  const struct = document.getElementById('xbStruct').value || '—';
-  const u = document.getElementById('xbUnderlying').value || '—';
-  const rate = document.getElementById('xbRate').value || '—';
+  const no = _xb.no;
+  const fullName = no ? `华夏资本龙腾鑫享${no}号` : '华夏资本龙腾鑫享XXX号';
+  const struct = _xb.struct || '—';
+  const structText = struct.includes('结构') ? struct : (struct + '结构');
+  const u = (_xb.under || '—').replace(/指数$/, '');
+  const rate = _xb.rate || '—';
   const month = document.getElementById('xbMonth').value || '—';
   document.getElementById('xbPName').textContent = fullName;
-  document.getElementById('xbPStruct').textContent = `${struct}结构 挂钩${u}`;
+  document.getElementById('xbPStruct').textContent = `${structText} 挂钩${u}`;
   document.getElementById('xbPMonth').textContent = month;
   document.getElementById('xbPRate').textContent = rate;
   document.getElementById('xbPTimes').textContent = month;
