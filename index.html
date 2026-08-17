@@ -283,6 +283,39 @@ tbody tr:last-child td{border-bottom:none}
 .scale-auto-tip{font-size:11px;color:var(--gray-400);margin-top:4px}
 @media(max-width:720px){.scale-grid{grid-template-columns:1fr}}
 
+/* ============ 敲出喜报 ============ */
+.xibao-preview{width:620px;max-width:100%;aspect-ratio:1080/2340;position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#a01f1f 0%,#8b1a1a 22%,#7a1414 46%,#6b0f0f 72%,#5c0a0a 100%);box-shadow:inset 0 0 0 10px #d4af37,inset 0 0 0 12px #8b6914,0 8px 24px rgba(0,0,0,.35);font-family:'STKaiti','KaiTi','STSong','SimSun',serif;color:#f7e7b8;display:flex;flex-direction:column;align-items:center;padding:34px 26px 26px;box-sizing:border-box;text-align:center}
+.xibao-preview .xb-top{font-size:26px;letter-spacing:6px;color:#f3d27a;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.xibao-preview .xb-top small{display:block;font-size:13px;letter-spacing:3px;color:#e8c877;margin-top:2px;font-weight:400}
+.xibao-preview .xb-title{font-size:120px;line-height:1.1;color:#ffd700;font-weight:900;margin:14px 0 2px;text-shadow:0 3px 6px rgba(0,0,0,.5),0 0 30px rgba(255,215,0,.35);letter-spacing:18px}
+.xibao-preview .xb-divider{width:70%;height:2px;background:linear-gradient(90deg,transparent,#e8c877,transparent);margin:12px 0 18px;position:relative}
+.xibao-preview .xb-divider::after{content:'✦';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#7a1414;padding:0 10px;color:#ffd700;font-size:14px}
+.xibao-preview .xb-name{font-size:44px;color:#ffd700;font-weight:700;letter-spacing:2px;text-shadow:0 2px 4px rgba(0,0,0,.5)}
+.xibao-preview .xb-struct{font-size:24px;color:#f3d27a;margin-top:10px;letter-spacing:2px}
+.xibao-preview .xb-knock{margin-top:26px;padding:14px 40px;border:2px solid #e8c877;border-radius:40px;background:rgba(0,0,0,.18)}
+.xibao-preview .xb-knock .lbl{font-size:20px;color:#f3d27a;letter-spacing:4px}
+.xibao-preview .xb-knock .val{font-size:52px;color:#fff;font-weight:800;margin-top:2px;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+.xibao-preview .xb-rate{margin-top:30px}
+.xibao-preview .xb-rate .lbl{font-size:22px;color:#f3d27a;letter-spacing:4px}
+.xibao-preview .xb-rate .val{font-size:58px;color:#ffd700;font-weight:800;margin-top:4px;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+.xibao-preview .xb-foot{margin-top:auto;font-size:12px;line-height:1.7;color:#e8c877;opacity:.85;letter-spacing:1px}
+.xibao-preview .xb-foot .src{font-size:14px;color:#f3d27a;margin-bottom:4px;letter-spacing:2px}
+.xibao-preview .xb-corners{position:absolute;inset:0;pointer-events:none}
+.xibao-preview .xb-corners .c{position:absolute;width:46px;height:46px;border:3px solid #e8c877;opacity:.9}
+.xibao-preview .xb-corners .c1{top:16px;left:16px;border-right:none;border-bottom:none;border-radius:8px 0 0 0}
+.xibao-preview .xb-corners .c2{top:16px;right:16px;border-left:none;border-bottom:none;border-radius:0 8px 0 0}
+.xibao-preview .xb-corners .c3{bottom:16px;left:16px;border-right:none;border-top:none;border-radius:0 0 0 8px}
+.xibao-preview .xb-corners .c4{bottom:16px;right:16px;border-left:none;border-top:none;border-radius:0 0 8px 0}
+.xibao-form .form-row{display:flex;gap:12px;flex-wrap:wrap}
+.xibao-form .form-group{flex:1;min-width:200px}
+.xibao-form label{display:block;font-size:12px;color:var(--gray-500);margin-bottom:5px;font-weight:500}
+.xibao-form input,.xibao-form select{width:100%;padding:9px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;font-family:inherit}
+.xibao-form input:focus,.xibao-form select:focus{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(43,108,176,.12)}
+.xibao-wrap{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.xibao-wrap .xibao-form{flex:1;min-width:300px}
+.xibao-wrap .xibao-preview-wrap{flex:1;min-width:320px;max-width:460px}
+.xibao-preview-wrap .xibao-preview{width:100%}
+
 /* ============ Responsive ============ */
 @media(max-width:1024px){.main{padding:20px}.header{padding:0 20px}.toolbar{padding:12px 20px}}
 @media(max-width:640px){
@@ -379,6 +412,7 @@ tbody tr:last-child td{border-bottom:none}
     <button class="btn btn-primary" onclick="openProductModal()">➕ 新增产品</button>
     <button class="btn btn-accent" onclick="openOrderModal()">📝 修改报单</button>
     <button class="btn btn-outline" onclick="openListModal()" style="color:var(--purple);border-color:var(--purple)" title="将全部产品信息汇总为一个表格">📋 生成产品列表</button>
+    <button class="btn btn-outline" onclick="openXibaoModal()" style="color:#c53030;border-color:#c53030" title="输入产品信息+敲出日期，生成敲出喜报图片">🎉 敲出喜报</button>
     <div style="width:1px;height:24px;background:var(--gray-200);margin:0 2px"></div>
     <button class="btn btn-sm btn-outline" onclick="exportDataJSON()" title="导出 JSON 数据文件（用于备份/迁移）">📤 导出</button>
     <button class="btn btn-sm btn-outline" onclick="importDataJSON()" title="从 JSON 文件导入数据">📥 导入</button>
@@ -465,6 +499,85 @@ tbody tr:last-child td{border-bottom:none}
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeScaleModal()">取消</button>
       <button class="btn btn-primary" onclick="saveScale()">💾 保存成立规模</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: 敲出喜报 ============ -->
+<div class="modal-overlay" id="xibaoModal">
+  <div class="modal" style="max-width:980px">
+    <div class="modal-header">
+      <h2>🎉 敲出喜报生成</h2>
+      <button class="close" onclick="closeXibaoModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="xibao-wrap">
+        <div class="xibao-form">
+          <div class="form-row">
+            <div class="form-group" style="flex:2">
+              <label>选择产品</label>
+              <select id="xbProduct" onchange="xbProductChanged()"></select>
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:12px">
+            <div class="form-group">
+              <label>产品名称</label>
+              <input type="text" id="xbName" readonly>
+            </div>
+            <div class="form-group">
+              <label>产品结构</label>
+              <input type="text" id="xbStruct" placeholder="如：欧式凤凰">
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:12px">
+            <div class="form-group">
+              <label>挂钩标的</label>
+              <input type="text" id="xbUnderlying" placeholder="如：中证1000">
+            </div>
+            <div class="form-group">
+              <label>票息率（%/年）</label>
+              <input type="text" id="xbRate" placeholder="如：0.85%">
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:12px">
+            <div class="form-group">
+              <label>敲出日期</label>
+              <input type="date" id="xbDate" onchange="xbDateChanged()">
+            </div>
+            <div class="form-group">
+              <label>第几个月敲出</label>
+              <input type="number" id="xbMonth" min="1" step="1" placeholder="如：3">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:10px;line-height:1.6">产品信息可自动带出并手动修改。敲出日期将自动计算第几个月（从募集尾日算起），也可手动填写。票息率显示为「票息 × 期数」。</div>
+          <div style="margin-top:16px;display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="xbGenImage()" style="flex:1">🖼️ 生成喜报图片</button>
+            <button class="btn btn-outline" onclick="closeXibaoModal()">关闭</button>
+          </div>
+        </div>
+        <div class="xibao-preview-wrap">
+          <div class="xibao-preview" id="xbPreview">
+            <div class="xb-corners"><span class="c c1"></span><span class="c c2"></span><span class="c c3"></span><span class="c c4"></span></div>
+            <div class="xb-top">华夏资本<small>华夏另类投资 · CHINACAPITAL</small></div>
+            <div class="xb-title">喜报</div>
+            <div class="xb-divider"></div>
+            <div class="xb-name" id="xbPName">华夏资本龙腾鑫享XXX号</div>
+            <div class="xb-struct" id="xbPStruct">欧式凤凰结构 挂钩中证1000</div>
+            <div class="xb-knock">
+              <div class="lbl">第 <span id="xbPMonth">3</span> 个月 敲出</div>
+              <div class="val">🎉 敲出</div>
+            </div>
+            <div class="xb-rate">
+              <div class="lbl">累计派息</div>
+              <div class="val"><span id="xbPRate">0.85%</span> × <span id="xbPTimes">3</span></div>
+            </div>
+            <div class="xb-foot">
+              <div class="src">数据来源：华夏资本</div>
+              <div>风险提示：本材料内容不构成对投资人进行投资的任何实质性建议、承诺和保证。市场有风险，投资须谨慎。最终收益以实际清算金额为准。</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2300,6 +2413,150 @@ function saveScale() {
   closeScaleModal();
   renderAll();
   toast(`✅ 已保存「${p.name}」实际成立规模：${fmtShares(p.scale.total)}`);
+}
+
+// ============================================================
+// 敲出喜报生成
+// ============================================================
+
+function openXibaoModal() {
+  const sel = document.getElementById('xbProduct');
+  sel.innerHTML = '<option value="">— 请选择产品 —</option>' + products.map(p =>
+    `<option value="${p.id}">${p.name}</option>`).join('');
+  document.getElementById('xibaoModal').classList.add('show');
+}
+
+function closeXibaoModal() {
+  document.getElementById('xibaoModal').classList.remove('show');
+}
+
+/** 从产品名提取产品号：华夏资本龙腾鑫享578号 → 578 */
+function xbExtractNo(name) {
+  const m = String(name || '').match(/龙腾鑫享\s*(\d+)\s*号/);
+  return m ? m[1] : '';
+}
+
+/** 从产品 type 提取结构关键词：3年期欧式凤凰 → 欧式凤凰 */
+function xbExtractStruct(type) {
+  const t = String(type || '');
+  const m = t.match(/(欧式凤凰|美式凤凰|凤凰|早利|雪球|鲨鱼鳍|二元|价差)/);
+  return m ? m[1] : (t.replace(/^\d+\s*年\s*期?\s*/, '') || t);
+}
+
+/** 从挂钩标的中提取：中证1000指数 → 中证1000 */
+function xbExtractUnderlying(u) {
+  const s = String(u || '');
+  const m = s.match(/(中证|沪深|上证|深证|恒生|科创|创业板|国证)\s*\d*/);
+  return m ? m[0] : s;
+}
+
+/** 从票息率提取纯数字：0.85% → 0.85 */
+function xbExtractRate(r) {
+  const m = String(r || '').match(/(\d+(?:\.\d+)?)\s*%/);
+  return m ? m[1] + '%' : (String(r || '').trim() || '—');
+}
+
+/** 从募集期文本解析尾日：预计8月6日-8月7日 → 8月7日 */
+function xbParseRaiseEnd(raisePeriod) {
+  const s = String(raisePeriod || '');
+  const m = s.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*日\s*[-—~至到]\s*\d{1,2}\s*月\s*(\d{1,2})\s*日/);
+  if (m) return { month: +m[1], day: +m[3] };
+  const m2 = s.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*日/);
+  if (m2) return { month: +m2[1], day: +m2[2] };
+  return null;
+}
+
+function xbProductChanged() {
+  const id = document.getElementById('xbProduct').value;
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('xbName').value = p.name || '';
+  document.getElementById('xbStruct').value = xbExtractStruct(p.type);
+  document.getElementById('xbUnderlying').value = xbExtractUnderlying(p.underlying);
+  document.getElementById('xbRate').value = xbExtractRate(p.monthlyRate);
+  xbRender();
+}
+
+/** 敲出日期 → 自动计算第几个月（从募集尾日算起） */
+function xbDateChanged() {
+  const dateVal = document.getElementById('xbDate').value;
+  const p = getXibaoProduct();
+  if (!dateVal || !p) return;
+  const end = xbParseRaiseEnd(p.raisePeriod);
+  if (!end) return;
+  const d = new Date(dateVal + 'T00:00:00');
+  // 募集尾日所在的年份：用敲出日期的年份近似（跨年处理）
+  let base = new Date(d.getFullYear(), end.month - 1, end.day);
+  if (base > d) base = new Date(d.getFullYear() - 1, end.month - 1, end.day);
+  let months = (d.getFullYear() - base.getFullYear()) * 12 + (d.getMonth() - base.getMonth());
+  if (d.getDate() < base.getDate()) months -= 1;
+  if (months < 1) months = 1;
+  document.getElementById('xbMonth').value = months;
+  xbRender();
+}
+
+function getXibaoProduct() {
+  const id = document.getElementById('xbProduct').value;
+  return products.find(x => x.id === id);
+}
+
+/** 渲染喜报预览 */
+function xbRender() {
+  const p = getXibaoProduct();
+  const name = document.getElementById('xbName').value || (p ? p.name : '华夏资本龙腾鑫享XXX号');
+  // 产品名统一为「华夏资本龙腾鑫享XXX号」
+  const no = xbExtractNo(name) || (p ? xbExtractNo(p.name) : '');
+  const fullName = no ? `华夏资本龙腾鑫享${no}号` : name;
+  const struct = document.getElementById('xbStruct').value || '—';
+  const u = document.getElementById('xbUnderlying').value || '—';
+  const rate = document.getElementById('xbRate').value || '—';
+  const month = document.getElementById('xbMonth').value || '—';
+  document.getElementById('xbPName').textContent = fullName;
+  document.getElementById('xbPStruct').textContent = `${struct}结构 挂钩${u}`;
+  document.getElementById('xbPMonth').textContent = month;
+  document.getElementById('xbPRate').textContent = rate;
+  document.getElementById('xbPTimes').textContent = month;
+}
+
+/** 生成喜报 PNG 图片 */
+function xbGenImage() {
+  const preview = document.getElementById('xbPreview');
+  xbRender();
+  const btn = event && event.target ? event.target : null;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 生成中...'; }
+  loadHtml2Canvas().then(() => {
+    return html2canvas(preview, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: null,
+      logging: false
+    });
+  }).then(canvas => {
+    const a = document.createElement('a');
+    a.download = '喜报_' + (document.getElementById('xbPName').textContent.replace(/[^\d]/g, '') || '') + '.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    toast('✅ 喜报图片已生成并下载');
+  }).catch(err => {
+    toast('生成失败：' + (err && err.message || err), 'error');
+  }).finally(() => {
+    if (btn) { btn.disabled = false; btn.textContent = '🖼️ 生成喜报图片'; }
+  });
+}
+
+/** 动态加载 html2canvas（jsdelivr CDN） */
+let _html2canvasPromise = null;
+function loadHtml2Canvas() {
+  if (window.html2canvas) return Promise.resolve();
+  if (_html2canvasPromise) return _html2canvasPromise;
+  _html2canvasPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    s.onload = resolve;
+    s.onerror = () => { _html2canvasPromise = null; reject(new Error('html2canvas 加载失败（网络受限）')); };
+    document.head.appendChild(s);
+  });
+  return _html2canvasPromise;
 }
 
 // ============================================================
