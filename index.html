@@ -385,6 +385,16 @@ tbody tr:last-child td{border-bottom:none}
 .kn-ev-subjects{font-size:11px;color:var(--gray-400);flex:1 1 320px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kn-event-head .btn{margin-left:auto}
 
+/* ---- 披露日可收起 ---- */
+.kn-ev-actions{display:flex;justify-content:flex-end;gap:8px;margin:-4px 0 10px}
+.kn-ev-actions .btn{font-size:12px;padding:3px 10px}
+.kn-event-head{cursor:pointer;user-select:none}
+.kn-event-head:hover{background:linear-gradient(90deg,#f1f5f9,#fbfdff)}
+.kn-caret{display:inline-block;width:12px;text-align:center;color:var(--gray-400);font-size:12px;transition:transform .18s ease}
+.kn-event.is-collapsed .kn-caret{transform:rotate(-90deg)}
+.kn-event.is-collapsed .kn-event-head{border-bottom:none}
+.kn-event.is-collapsed .kn-event-body{display:none}
+
 /* ---- 状态胶囊 ---- */
 .kn-chip{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px;white-space:nowrap}
 .kn-chip.warn{background:#fef3c7;color:#b7791f}
@@ -2747,7 +2757,7 @@ function initLogin() {
 /*__LTXX_NAV_JS_END__*/</script>
 <script>/*__LTXX_KNOCK_DATA_BEGIN__*/
 window.KNOCK_DATA = {
- "generatedAt": "2026-11-20 15:56",
+ "generatedAt": "2026-11-20 16:00",
  "xlsx": "华夏资本_历史产品渠道销量统计表_20261113.xlsx",
  "xlsxDate": "2026-11-13",
  "events": [
@@ -4690,6 +4700,39 @@ window.KNOCK_DATA = {
     });
   }
 
+  /* ---------------- 披露日收起/展开 ---------------- */
+  const COLLAPSE_KEY = 'ltxxKnockCollapsed';
+  function collapseMap() {
+    try { return JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}') || {}; } catch (e) { return {}; }
+  }
+  function saveCollapseMap(m) {
+    try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(m)); } catch (e) { /* 隐私模式忽略 */ }
+  }
+  function evKey(ev) { return String(ev.date) + '|' + String(ev.type); }
+  // 默认：最新一个披露日展开，其余收起；用户点过的以缓存为准
+  function isCollapsed(ev, idx) {
+    const m = collapseMap();
+    const k = evKey(ev);
+    if (Object.prototype.hasOwnProperty.call(m, k)) return !!m[k];
+    return idx > 0;
+  }
+  window.knToggleEvent = function (k, head) {
+    const node = head.closest('.kn-event');
+    if (!node) return;
+    const collapsed = !node.classList.contains('is-collapsed');
+    node.classList.toggle('is-collapsed', collapsed);
+    const m = collapseMap(); m[k] = collapsed ? 1 : 0; saveCollapseMap(m);
+  };
+  window.knToggleAll = function (collapse) {
+    const m = collapseMap();
+    document.querySelectorAll('#knMain .kn-event').forEach(node => {
+      const k = node.dataset.evkey;
+      node.classList.toggle('is-collapsed', !!collapse);
+      if (k) m[k] = collapse ? 1 : 0;
+    });
+    saveCollapseMap(m);
+  };
+
   /* ---------------- 渲染 ---------------- */
   function termsHtml(p) {
     const items = [
@@ -4761,20 +4804,28 @@ window.KNOCK_DATA = {
       KN.rendered = true;
       return;
     }
-    main.innerHTML = KN.events.map((ev, ei) => {
+    const head = '<div class="kn-ev-actions">' +
+      '<button class="btn btn-sm btn-outline" onclick="knToggleAll(false)">▾ 全部展开</button>' +
+      '<button class="btn btn-sm btn-outline" onclick="knToggleAll(true)">▸ 全部收起</button>' +
+      '</div>';
+    main.innerHTML = (total > 1 ? head : '') + KN.events.map((ev, ei) => {
       const sumWan = ev.products.reduce((a, p) => a + (Number(p.totalWan) || 0), 0);
       const body = KN.view === 'product'
         ? '<div class="kn-products">' + ev.products.map((p, pi) => productCard(p, ei, pi)).join('') + '</div>'
         : '<div class="kn-chcards">' + ev.channels.map((c, ci) => channelCard(c, ei, ci)).join('') + '</div>';
-      return '<div class="kn-event">' +
-        '<div class="kn-event-head">' +
+      const key = evKey(ev);
+      return '<div class="kn-event' + (isCollapsed(ev, ei) ? ' is-collapsed' : '') + '" data-evkey="' + esc(key) + '">' +
+        '<div class="kn-event-head" onclick="knToggleEvent(\'' + esc(key).replace(/'/g, "\\'") + '\', this)" title="点击收起/展开当天明细">' +
+        '<span class="kn-caret">▼</span>' +
         '<span class="kn-date">' + esc(ev.date) + '</span>' +
         '<span class="kn-chip ' + (STATUS_CLS[ev.type] || 'info') + '">' + esc(ev.type) + '</span>' +
         '<span class="kn-ev-sub">' + ev.products.length + ' 只产品 · ' + ev.channels.length + ' 个渠道 · 合计 ' + fmt(sumWan) + ' 万</span>' +
         '<span class="kn-ev-subjects" title="' + esc((ev.subjects || []).join(' / ')) + '">' + esc((ev.subjects || [])[0] || '') + '</span>' +
-        '<button class="btn btn-sm btn-outline" onclick="knCopyEvent(' + ei + ')">📋 复制本批全部通知</button>' +
-        '</div>' + body +
+        '<button class="btn btn-sm btn-outline" onclick="event.stopPropagation();knCopyEvent(' + ei + ')">📋 复制本批全部通知</button>' +
+        '</div>' +
+        '<div class="kn-event-body">' + body +
         '<div class="kn-footnote">文字口径与投资管理部披露邮件一致；渠道与金额取自《华夏资本_历史产品渠道销量统计表》（销量口径 ' + esc(KN.data.xlsxDate || '-') + '），只列认购/申购金额 &gt; 0 的机构，管理人自持不计。中信证券专户为合并口径（含原「专户（山东）」「中信证券华南股份有限公司」两主体，金额已相加）。</div>' +
+        '</div>' +
         '</div>';
     }).join('');
     KN.rendered = true;
