@@ -1340,6 +1340,12 @@ function renderProductList() {
     list = list.filter(p => p.name.toLowerCase().includes(keyword));
   }
   list = [...list].sort((a, b) => {
+    if (_view === 'closed') {
+      // 已结束：按「募集结束日」由最晚到最早（结束日一样或都取不到时，产品号大的在前）
+      const d = parseRaiseEndDate(b.raisePeriod) - parseRaiseEndDate(a.raisePeriod);
+      if (d) return d;
+      return productNo(b) - productNo(a);
+    }
     const aVal = parseRaiseDate(a.raisePeriod);
     const bVal = parseRaiseDate(b.raisePeriod);
     return aVal - bVal;
@@ -1368,6 +1374,32 @@ function parseRaiseDate(str) {
   const m = str.match(/(\d{1,2})月(\d{1,2})日/);
   if (m) return parseInt(m[1]) * 100 + parseInt(m[2]);
   return 9999;
+}
+
+/** 募集期文本里的「结束日」→ 可比较数字（M*100+D），取文本里最晚的那个日期。
+ *  兼容「预计11月30日-12月1日」「11/30-12/1」「11.30-12.1」「2026-11-30至2026-12-01」等写法；
+ *  跨年（12月30日-1月2日）按月数 +12 处理；取不到日期返回 0（倒序时排最后）。 */
+function parseRaiseEndDate(str) {
+  const s = String(str || '');
+  const cand = [];
+  for (const m of s.matchAll(/(\d{1,2})\s*月\s*(\d{1,2})\s*日/g)) cand.push([+m[1], +m[2]]);
+  if (!cand.length) {
+    for (const m of s.matchAll(/(?<!\d)(\d{1,2})\s*[-/.]\s*(\d{1,2})(?!\d)/g)) {
+      const mm = +m[1], dd = +m[2];
+      if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) cand.push([mm, dd]);
+    }
+  }
+  if (!cand.length) return 0;
+  const first = cand[0], last = cand[cand.length - 1];
+  let mm = last[0];
+  if (mm < first[0]) mm += 12;               // 跨年
+  return mm * 100 + last[1];
+}
+
+/** 产品名称里的编号，如「华夏资本龙腾鑫享638号」→ 638（拿不到返回 -1） */
+function productNo(p) {
+  const m = String((p && p.name) || '').match(/(\d+)\s*号/);
+  return m ? parseInt(m[1], 10) : -1;
 }
 
 function renderProductCard(p, idx) {
